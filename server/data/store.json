@@ -1,0 +1,519 @@
+{
+  "events": [
+    {
+      "id": "evt_sangram_2026",
+      "name": "Futsal Premier League - 2026",
+      "sport": "Football",
+      "startDate": "2026-09-25",
+      "endDate": "2026-09-27",
+      "venue": "IIM Raipur Basketball Court",
+      "format": "knockout",
+      "scoringRules": {
+        "pointsWin": 3,
+        "pointsDraw": 1,
+        "pointsLoss": 0,
+        "bonusThreshold": 3,
+        "bonusPoints": 1,
+        "penaltyPoints": 0
+      },
+      "teamCapacity": {
+        "min": 7,
+        "max": 15
+      }
+    },
+    {
+      "id": "evt_chakravyuh_2026",
+      "name": "Chakravyuh Inter-Section Cricket Cup",
+      "sport": "Cricket",
+      "startDate": "2026-10-05",
+      "endDate": "2026-10-12",
+      "venue": "Campus Cricket Oval",
+      "format": "round_robin",
+      "scoringRules": {
+        "pointsWin": 2,
+        "pointsDraw": 1,
+        "pointsLoss": 0,
+        "bonusThreshold": 50,
+        "bonusPoints": 1,
+        "penaltyPoints": 0
+      },
+      "teamCapacity": {
+        "min": 11,
+        "max": 16
+      }
+    }
+  ],
+  "teams": [
+    {
+      "id": "team_1",
+      "eventId": "evt_sangram_2026",
+      "name": "Raipur Rhinos",
+      "shortCode": "RRH",
+      "color": "#10b981",
+      "owner": "Aarav Sharma (PGP-1)",
+      "coOwner": "Priya Verma (PGP-2)",
+      "contactNumber": "+91 98765 43210",
+      "players": [
+        {
+          "id": "p1_1",
+          "name": "Aarav Sharma",
+          "jerseyNumber": 10,
+          "role": "Forward (C)",
+          "isCaptain": true
+        },
+        {
+          "id": "p1_2",
+          "name": "Kabir Das",
+          "jerseyNumber": 7,
+          "role": "Winger",
+          "isCaptain": false
+        },
+        {
+          "id": "p1_3",
+          "name": "Aditya Roy",
+          "jerseyNumber": 4,
+          "role": "Central Midfielder",
+          "isCaptain": false
+        },
+        {
+          "id": "p1_4",
+          "name": "Manish Paul",
+          "jerseyNumber": 1,
+          "role": "Goalkeeper",
+          "isCaptain": false
+        },
+        {
+          "id": "p1_5",
+          "name": "Sameer Khan",
+          "jerseyNumber": 5,
+          "role": "Centre Back",
+          "isCaptain": false
+        },
+        {
+          "id": "p1_6",
+          "name": "Rohan Gupta",
+          "jerseyNumber": 11,
+          "role": "Striker",
+          "isCaptain": false
+        },
+        {
+          "id": "p1_7",
+          "name": "Nikhil Varma",
+          "jerseyNumber": 3,
+          "role": "Left Back",
+          "isCaptain": false
+        },
+        {
+          "id": "p1_8",
+          "name": "Hardik Shah",
+          "jerseyNumber": 8,
+          "role": "Midfielder",
+          "isCaptain": false
+        }
+      ]
+    },
+    {
+      "id": "team_2",
+      "eventId": "evt_sangram_2026",
+      "name": "Naya Raipur Knights",
+      "shortCode": "NRK",
+      "color": "#3b82f6",
+      "owner": "Rohan Iyer (PGP-2)",
+      "coOwner": "Ananya Sen (PGP-1)",
+      "contactNumber": "+91 98765 43211",
+      "players": [
+        {
+          "id": "p2_1",
+          "name": "Rohan Iyer",
+          "jerseyNumber": 9,
+          "role": "Striker (C)",
+          "isCaptain": true
+        },
+        {
+          "id": "p2_2",
+          "name": "Devansh Bajaj",
+          "jerseyNumber": 8,
+          "role": "Attacking Midfielder",
+          "isCaptain": false
+        },
+        {
+          "id": "p2_3",
+          "name": "Ritvik Jha",
+          "jerseyNumber": 1,
+          "role": "Goalkeeper",
+          "isCaptain": false
+        },
+        {
+          "id": "p2_4",
+          "name": "Sahil Mishra",
+          "jerseyNumber": 6,
+          "role": "Defensive Mid",
+          "isCaptain": false
+        },
+        {
+          "id": "p2_5",
+          "name": "Arjun Singhal",
+          "jerseyNumber": 2,
+          "role": "Right Back",
+          "isCaptain": false
+        },
+        {
+          "id": "p2_6",
+          "name": "Tushar Saxena",
+          "jerseyNumber": 17,
+          "role": "Winger",
+          "isCaptain": false
+        },
+        {
+          "id": "p2_7",
+          "name": "Gaurav Joshi",
+          "jerseyNumber": 4,
+          "role": "Centre Back",
+          "isCaptain": false
+        }
+      ]
+    },
+    {
+      "id": "team_3",
+      "eventId": "evt_sangram_2026",
+      "name": "Mahanadi Warriors",
+      "shortCode": "MHW",
+      "color": "#f59e0b",
+      "owner": "Vikram Rathore (PGP-2)",
+      "coOwner": "Tanvi Nair (PGP-1)",
+      "contactNumber": "+91 98765 43212",
+      "players": [
+        {
+          "id": "p3_1",
+          "name": "Vikram Rathore",
+          "jerseyNumber": 7,
+          "role": "Midfield Maestro (C)",
+          "isCaptain": true
+        },
+        {
+          "id": "p3_2",
+          "name": "Siddharth Jain",
+          "jerseyNumber": 11,
+          "role": "Forward",
+          "isCaptain": false
+        },
+        {
+          "id": "p3_3",
+          "name": "Harshvardhan",
+          "jerseyNumber": 1,
+          "role": "Goalkeeper",
+          "isCaptain": false
+        },
+        {
+          "id": "p3_4",
+          "name": "Pranav Sethi",
+          "jerseyNumber": 5,
+          "role": "Centre Back",
+          "isCaptain": false
+        },
+        {
+          "id": "p3_5",
+          "name": "Yash Mathur",
+          "jerseyNumber": 14,
+          "role": "Left Midfielder",
+          "isCaptain": false
+        },
+        {
+          "id": "p3_6",
+          "name": "Karan Chawla",
+          "jerseyNumber": 12,
+          "role": "Right Winger",
+          "isCaptain": false
+        },
+        {
+          "id": "p3_7",
+          "name": "Deepak Yadav",
+          "jerseyNumber": 3,
+          "role": "Full Back",
+          "isCaptain": false
+        }
+      ]
+    },
+    {
+      "id": "team_4",
+      "eventId": "evt_sangram_2026",
+      "name": "Bastar Blasters",
+      "shortCode": "BBL",
+      "color": "#ec4899",
+      "owner": "Kabir Malhotra (PGP-1)",
+      "coOwner": "Simran Kaur (PGP-2)",
+      "contactNumber": "+91 98765 43213",
+      "players": [
+        {
+          "id": "p4_1",
+          "name": "Kabir Malhotra",
+          "jerseyNumber": 10,
+          "role": "Striker (C)",
+          "isCaptain": true
+        },
+        {
+          "id": "p4_2",
+          "name": "Amay Dubey",
+          "jerseyNumber": 8,
+          "role": "Central Mid",
+          "isCaptain": false
+        },
+        {
+          "id": "p4_3",
+          "name": "Varun Kapoor",
+          "jerseyNumber": 1,
+          "role": "Goalkeeper",
+          "isCaptain": false
+        },
+        {
+          "id": "p4_4",
+          "name": "Chetan Anand",
+          "jerseyNumber": 4,
+          "role": "Defender",
+          "isCaptain": false
+        },
+        {
+          "id": "p4_5",
+          "name": "Mohit Bansal",
+          "jerseyNumber": 7,
+          "role": "Left Wing",
+          "isCaptain": false
+        },
+        {
+          "id": "p4_6",
+          "name": "Alok Ranjan",
+          "jerseyNumber": 2,
+          "role": "Right Back",
+          "isCaptain": false
+        }
+      ]
+    },
+    {
+      "id": "team_5",
+      "eventId": "evt_sangram_2026",
+      "name": "Chhattisgarh Cheetahs",
+      "shortCode": "CHC",
+      "color": "#8b5cf6",
+      "owner": "Siddharth Rao (PGP-2)",
+      "coOwner": "Sneha Patel (PGP-1)",
+      "contactNumber": "+91 98765 43214",
+      "players": [
+        {
+          "id": "p5_1",
+          "name": "Siddharth Rao",
+          "jerseyNumber": 11,
+          "role": "Forward (C)",
+          "isCaptain": true
+        },
+        {
+          "id": "p5_2",
+          "name": "Bhavik Parekh",
+          "jerseyNumber": 6,
+          "role": "Midfielder",
+          "isCaptain": false
+        },
+        {
+          "id": "p5_3",
+          "name": "Karthik Raja",
+          "jerseyNumber": 1,
+          "role": "Goalkeeper",
+          "isCaptain": false
+        },
+        {
+          "id": "p5_4",
+          "name": "Uday Sen",
+          "jerseyNumber": 5,
+          "role": "Centre Back",
+          "isCaptain": false
+        },
+        {
+          "id": "p5_5",
+          "name": "Akash Pandey",
+          "jerseyNumber": 7,
+          "role": "Right Winger",
+          "isCaptain": false
+        }
+      ]
+    },
+    {
+      "id": "team_6",
+      "eventId": "evt_sangram_2026",
+      "name": "Durg Dynamos",
+      "shortCode": "DUD",
+      "color": "#06b6d4",
+      "owner": "Kunal Mehta (PGP-1)",
+      "coOwner": "Pooja Deshmukh (PGP-2)",
+      "contactNumber": "+91 98765 43215",
+      "players": [
+        {
+          "id": "p6_1",
+          "name": "Kunal Mehta",
+          "jerseyNumber": 9,
+          "role": "Striker (C)",
+          "isCaptain": true
+        },
+        {
+          "id": "p6_2",
+          "name": "Sanyam Jain",
+          "jerseyNumber": 10,
+          "role": "Playmaker",
+          "isCaptain": false
+        },
+        {
+          "id": "p6_3",
+          "name": "Omkar Jadhav",
+          "jerseyNumber": 1,
+          "role": "Goalkeeper",
+          "isCaptain": false
+        },
+        {
+          "id": "p6_4",
+          "name": "Aniket Ghosh",
+          "jerseyNumber": 3,
+          "role": "Defender",
+          "isCaptain": false
+        },
+        {
+          "id": "p6_5",
+          "name": "Tarun Negi",
+          "jerseyNumber": 14,
+          "role": "Wing Back",
+          "isCaptain": false
+        }
+      ]
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "fix_1789910644995_1",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 1,
+      "roundName": "Quarterfinals",
+      "homeTeamId": "team_1",
+      "awayTeamId": "TBD",
+      "homeTeamName": "Raipur Rhinos",
+      "awayTeamName": "TBD",
+      "scheduledDate": "2026-09-25",
+      "scheduledTime": "16:00",
+      "venueLocation": "Court 1",
+      "status": "scheduled",
+      "homeScore": null,
+      "awayScore": null,
+      "playerOfTheMatch": null,
+      "notes": ""
+    },
+    {
+      "id": "fix_1789910644995_2",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 1,
+      "roundName": "Quarterfinals",
+      "homeTeamId": "team_2",
+      "awayTeamId": "TBD",
+      "homeTeamName": "Naya Raipur Knights",
+      "awayTeamName": "TBD",
+      "scheduledDate": "2026-09-25",
+      "scheduledTime": "17:00",
+      "venueLocation": "Court 2",
+      "status": "scheduled",
+      "homeScore": null,
+      "awayScore": null,
+      "playerOfTheMatch": null,
+      "notes": ""
+    },
+    {
+      "id": "fix_1789910644995_3",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 1,
+      "roundName": "Quarterfinals",
+      "homeTeamId": "team_3",
+      "awayTeamId": "team_6",
+      "homeTeamName": "Mahanadi Warriors",
+      "awayTeamName": "Durg Dynamos",
+      "scheduledDate": "2026-09-25",
+      "scheduledTime": "18:00",
+      "venueLocation": "Court 1",
+      "status": "completed",
+      "homeScore": 3,
+      "awayScore": 2,
+      "playerOfTheMatch": {
+        "playerId": "p3_1",
+        "playerName": "Vikram Rathore",
+        "teamId": "team_3",
+        "performance": "2 Goals & Match-winning assist"
+      },
+      "notes": ""
+    },
+    {
+      "id": "fix_1789910644995_4",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 1,
+      "roundName": "Quarterfinals",
+      "homeTeamId": "team_4",
+      "awayTeamId": "team_5",
+      "homeTeamName": "Bastar Blasters",
+      "awayTeamName": "Chhattisgarh Cheetahs",
+      "scheduledDate": "2026-09-25",
+      "scheduledTime": "16:00",
+      "venueLocation": "Court 2",
+      "status": "scheduled",
+      "homeScore": null,
+      "awayScore": null,
+      "playerOfTheMatch": null,
+      "notes": ""
+    },
+    {
+      "id": "fix_1789910644995_5",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 2,
+      "roundName": "Semifinals",
+      "homeTeamId": "TBD",
+      "awayTeamId": "TBD",
+      "homeTeamName": "Winner Match 1",
+      "awayTeamName": "Winner Match 2",
+      "scheduledDate": "2026-09-27",
+      "scheduledTime": "18:00",
+      "venueLocation": "Main Stadium Court",
+      "status": "scheduled",
+      "homeScore": null,
+      "awayScore": null,
+      "playerOfTheMatch": null,
+      "notes": ""
+    },
+    {
+      "id": "fix_1789910644995_6",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 2,
+      "roundName": "Semifinals",
+      "homeTeamId": "TBD",
+      "awayTeamId": "TBD",
+      "homeTeamName": "Winner Match 3",
+      "awayTeamName": "Winner Match 4",
+      "scheduledDate": "2026-09-27",
+      "scheduledTime": "18:00",
+      "venueLocation": "Main Stadium Court",
+      "status": "scheduled",
+      "homeScore": null,
+      "awayScore": null,
+      "playerOfTheMatch": null,
+      "notes": ""
+    },
+    {
+      "id": "fix_1789910644995_7",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 3,
+      "roundName": "Grand Final",
+      "homeTeamId": "TBD",
+      "awayTeamId": "TBD",
+      "homeTeamName": "Winner Match 1",
+      "awayTeamName": "Winner Match 2",
+      "scheduledDate": "2026-09-28",
+      "scheduledTime": "18:00",
+      "venueLocation": "Main Stadium Court",
+      "status": "scheduled",
+      "homeScore": null,
+      "awayScore": null,
+      "playerOfTheMatch": null,
+      "notes": ""
+    }
+  ]
+}
