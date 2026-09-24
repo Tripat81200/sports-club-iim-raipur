@@ -11,6 +11,10 @@ import {
   AlertTriangle,
   Shirt,
   Sparkles,
+  Edit,
+  X,
+  Phone,
+  Shield,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Team, Player, TournamentEvent } from '../../types';
@@ -42,6 +46,10 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
     { id: '3', name: '', jerseyNumber: 1, role: 'Goalkeeper', isCaptain: false },
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Edit Team State
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   // Bulk Upload State
   const [bulkPreview, setBulkPreview] = useState<Partial<Team>[]>([]);
@@ -238,8 +246,11 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
       const res = await api.parseRosterText(ocrText);
       setOcrParsedTeam({
         name: res.teamName || 'Parsed Team',
+        shortCode: (res.teamName ? res.teamName.substring(0, 3) : 'IMP').toUpperCase(),
+        color: '#f59e0b',
         owner: res.owner || 'Unassigned',
         coOwner: res.coOwner || 'Unassigned',
+        contactNumber: res.contactNumber || '',
         players: res.players || [],
       });
     } catch (err) {
@@ -256,10 +267,11 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
       await api.createTeam({
         eventId: currentEvent.id,
         name: ocrParsedTeam.name,
-        shortCode: ocrParsedTeam.name.substring(0, 3).toUpperCase(),
-        color: '#f59e0b',
+        shortCode: (ocrParsedTeam.shortCode || ocrParsedTeam.name.substring(0, 3)).toUpperCase(),
+        color: ocrParsedTeam.color || '#f59e0b',
         owner: ocrParsedTeam.owner || 'N/A',
         coOwner: ocrParsedTeam.coOwner || 'N/A',
+        contactNumber: ocrParsedTeam.contactNumber || '',
         players: ocrParsedTeam.players || [],
       });
       setOcrParsedTeam(null);
@@ -269,6 +281,72 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
     } catch (err) {
       alert('Failed to save team');
     }
+  };
+
+  // Edit Team Handlers
+  const handleSaveEditedTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTeam) return;
+    if (!editingTeam.name.trim()) {
+      return alert('Team name is required');
+    }
+
+    setIsSavingEdit(true);
+    try {
+      await api.updateTeam(editingTeam.id, {
+        name: editingTeam.name.trim(),
+        shortCode: (editingTeam.shortCode || editingTeam.name.substring(0, 3)).toUpperCase(),
+        color: editingTeam.color || '#10b981',
+        owner: editingTeam.owner || 'N/A',
+        coOwner: editingTeam.coOwner || 'N/A',
+        contactNumber: editingTeam.contactNumber || '',
+        players: editingTeam.players || [],
+      });
+      onRefreshTeams();
+      setEditingTeam(null);
+      alert('Team updated successfully!');
+    } catch (err) {
+      alert('Failed to update team');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  const addPlayerToEditingTeam = () => {
+    if (!editingTeam) return;
+    const newPlayer: Player = {
+      id: `p_${Date.now()}_${editingTeam.players.length + 1}`,
+      name: '',
+      jerseyNumber: editingTeam.players.length + 1,
+      role: 'Player',
+      isCaptain: false,
+    };
+    setEditingTeam({
+      ...editingTeam,
+      players: [...editingTeam.players, newPlayer],
+    });
+  };
+
+  const updateEditingPlayer = (idx: number, updates: Partial<Player>) => {
+    if (!editingTeam) return;
+    const updated = [...editingTeam.players];
+    updated[idx] = { ...updated[idx], ...updates };
+    setEditingTeam({ ...editingTeam, players: updated });
+  };
+
+  const removePlayerFromEditingTeam = (idx: number) => {
+    if (!editingTeam) return;
+    const updated = editingTeam.players.filter((_, i) => i !== idx);
+    setEditingTeam({ ...editingTeam, players: updated });
+  };
+
+  const toggleCaptainInEditingTeam = (idx: number) => {
+    if (!editingTeam) return;
+    const updated = editingTeam.players.map((p, i) => ({
+      ...p,
+      isCaptain: i === idx,
+    }));
+    setEditingTeam({ ...editingTeam, players: updated });
   };
 
   const handleDeleteTeam = async (id: string, name: string) => {
@@ -628,33 +706,67 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                   <div>
                     <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">
-                      Extracted Preview
+                      Extracted Preview (Verify & Tweak)
                     </span>
-                    <h4 className="text-lg font-black text-white">{ocrParsedTeam.name}</h4>
+                    <input
+                      type="text"
+                      value={ocrParsedTeam.name || ''}
+                      onChange={(e) => setOcrParsedTeam({ ...ocrParsedTeam, name: e.target.value })}
+                      placeholder="Team Name"
+                      className="text-lg font-black text-white bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 mt-1 w-full focus:outline-none focus:border-amber-400"
+                    />
                   </div>
                   <button
                     onClick={handleSaveOcrTeam}
-                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 shrink-0 ml-3"
                   >
                     <Check className="w-3.5 h-3.5" />
                     <span>Save Team</span>
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div>
-                    <span className="text-slate-400">Owner:</span>{' '}
-                    <span className="text-white font-semibold">{ocrParsedTeam.owner}</span>
+                    <label className="block text-[10px] text-slate-400 font-bold uppercase mb-1">
+                      Manager / Owner
+                    </label>
+                    <input
+                      type="text"
+                      value={ocrParsedTeam.owner || ''}
+                      onChange={(e) => setOcrParsedTeam({ ...ocrParsedTeam, owner: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-white text-xs"
+                      placeholder="Owner Name"
+                    />
                   </div>
                   <div>
-                    <span className="text-slate-400">Co-Owner:</span>{' '}
-                    <span className="text-white font-semibold">{ocrParsedTeam.coOwner}</span>
+                    <label className="block text-[10px] text-slate-400 font-bold uppercase mb-1">
+                      Co-Owner
+                    </label>
+                    <input
+                      type="text"
+                      value={ocrParsedTeam.coOwner || ''}
+                      onChange={(e) => setOcrParsedTeam({ ...ocrParsedTeam, coOwner: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-white text-xs"
+                      placeholder="Co-Owner Name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-slate-400 font-bold uppercase mb-1">
+                      Contact Number
+                    </label>
+                    <input
+                      type="text"
+                      value={ocrParsedTeam.contactNumber || ''}
+                      onChange={(e) => setOcrParsedTeam({ ...ocrParsedTeam, contactNumber: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-white text-xs"
+                      placeholder="Contact No."
+                    />
                   </div>
                 </div>
 
                 <div className="pt-2">
                   <div className="text-xs font-bold text-slate-400 mb-2">
-                    Extracted Players ({ocrParsedTeam.players?.length}):
+                    Extracted Squad ({ocrParsedTeam.players?.length || 0}):
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto">
                     {ocrParsedTeam.players?.map((p, idx) => (
@@ -663,7 +775,7 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
                         className="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 text-xs"
                       >
                         <span className="font-semibold text-slate-200">
-                          #{p.jerseyNumber} {p.name}
+                          #{p.jerseyNumber} {p.name} {p.isCaptain && <span className="text-amber-400 font-bold text-[10px]">(C)</span>}
                         </span>
                         <span className="text-slate-400 text-[11px]">{p.role}</span>
                       </div>
@@ -703,20 +815,39 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                       <div
-                        className="w-3 h-3 rounded-full"
+                        className="w-3 h-3 rounded-full shrink-0"
                         style={{ backgroundColor: t.color || '#10b981' }}
                       />
-                      <span className="font-bold text-white text-sm">{t.name}</span>
+                      <span className="font-bold text-white text-sm truncate">{t.name}</span>
+                      {t.shortCode && (
+                        <span className="text-[10px] font-mono font-bold text-slate-500 uppercase">
+                          [{t.shortCode}]
+                        </span>
+                      )}
                     </div>
-                    <button
-                      onClick={() => handleDeleteTeam(t.id, t.name)}
-                      className="text-slate-500 hover:text-rose-400 p-1 rounded transition-colors"
-                      title="Remove team"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() =>
+                          setEditingTeam({
+                            ...t,
+                            players: t.players ? t.players.map((p) => ({ ...p })) : [],
+                          })
+                        }
+                        className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-900 rounded-lg transition-colors"
+                        title="Edit team details & squad"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTeam(t.id, t.name)}
+                        className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-900 rounded-lg transition-colors"
+                        title="Remove team"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="text-xs text-slate-400 space-y-1 mb-3">
@@ -726,6 +857,11 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
                     <div>
                       Co-Owner: <span className="text-slate-200">{t.coOwner}</span>
                     </div>
+                    {t.contactNumber && (
+                      <div className="text-slate-400">
+                        Ph: <span className="text-slate-300 font-mono">{t.contactNumber}</span>
+                      </div>
+                    )}
                     <div className="text-emerald-400 font-semibold">
                       {t.players.length} Squad Members
                     </div>
@@ -743,6 +879,215 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
           </div>
         )}
       </div>
+
+      {/* EDIT TEAM & SQUAD MODAL */}
+      {editingTeam && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl p-6 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-5">
+              <div>
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+                  Manage Squad & Details
+                </span>
+                <h3 className="text-xl font-black text-white">Edit Team: {editingTeam.name}</h3>
+              </div>
+              <button
+                onClick={() => setEditingTeam(null)}
+                className="text-slate-400 hover:text-white p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditedTeam} className="space-y-5">
+              {/* Team Basic Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+                    Team Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingTeam.name}
+                    onChange={(e) => setEditingTeam({ ...editingTeam, name: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+                    Short Code (3-4 Chars)
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={4}
+                    value={editingTeam.shortCode || ''}
+                    onChange={(e) =>
+                      setEditingTeam({ ...editingTeam, shortCode: e.target.value.toUpperCase() })
+                    }
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white uppercase font-mono focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Color, Manager & Co-Owner */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+                    Team Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={editingTeam.color || '#10b981'}
+                      onChange={(e) => setEditingTeam({ ...editingTeam, color: e.target.value })}
+                      className="w-8 h-8 rounded-lg border-0 bg-transparent cursor-pointer shrink-0"
+                    />
+                    <input
+                      type="text"
+                      value={editingTeam.color || '#10b981'}
+                      onChange={(e) => setEditingTeam({ ...editingTeam, color: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-2 py-1.5 text-xs text-white font-mono"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+                    Owner / Manager
+                  </label>
+                  <input
+                    type="text"
+                    value={editingTeam.owner || ''}
+                    onChange={(e) => setEditingTeam({ ...editingTeam, owner: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+                    Co-Owner
+                  </label>
+                  <input
+                    type="text"
+                    value={editingTeam.coOwner || ''}
+                    onChange={(e) => setEditingTeam({ ...editingTeam, coOwner: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+                  Contact Number
+                </label>
+                <input
+                  type="text"
+                  placeholder="+91 98765 43210"
+                  value={editingTeam.contactNumber || ''}
+                  onChange={(e) => setEditingTeam({ ...editingTeam, contactNumber: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              {/* Players Roster */}
+              <div className="pt-2 border-t border-slate-800">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    Squad Players ({editingTeam.players.length})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={addPlayerToEditingTeam}
+                    className="flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Player</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  {editingTeam.players.length === 0 ? (
+                    <div className="text-center py-4 text-xs text-slate-500">
+                      No players added to this squad yet. Click "Add Player" above.
+                    </div>
+                  ) : (
+                    editingTeam.players.map((p, idx) => (
+                      <div
+                        key={p.id || idx}
+                        className="flex items-center gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800"
+                      >
+                        <input
+                          type="number"
+                          min="1"
+                          value={p.jerseyNumber}
+                          onChange={(e) =>
+                            updateEditingPlayer(idx, {
+                              jerseyNumber: parseInt(e.target.value, 10) || 0,
+                            })
+                          }
+                          placeholder="#"
+                          className="w-14 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-center font-mono text-xs text-white"
+                        />
+                        <input
+                          type="text"
+                          value={p.name}
+                          onChange={(e) => updateEditingPlayer(idx, { name: e.target.value })}
+                          placeholder="Player Name"
+                          className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white"
+                        />
+                        <input
+                          type="text"
+                          value={p.role}
+                          onChange={(e) => updateEditingPlayer(idx, { role: e.target.value })}
+                          placeholder="Role (e.g. Forward)"
+                          className="w-28 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => toggleCaptainInEditingTeam(idx)}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                            p.isCaptain
+                              ? 'bg-amber-500 text-slate-950 font-black'
+                              : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-700'
+                          }`}
+                        >
+                          {p.isCaptain ? '★ Capt' : 'Capt?'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removePlayerFromEditingTeam(idx)}
+                          className="p-1 text-slate-500 hover:text-rose-400"
+                          title="Remove player"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingTeam(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingEdit}
+                  className="flex items-center gap-1.5 px-6 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 disabled:opacity-50"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>{isSavingEdit ? 'Saving...' : 'Save Changes'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

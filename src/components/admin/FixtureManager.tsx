@@ -15,9 +15,10 @@ import {
   ArrowRightLeft,
   X,
   Check,
+  Activity,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { Fixture, Team, TournamentEvent, TournamentFormat } from '../../types';
+import { Fixture, Team, TournamentEvent, TournamentFormat, MatchPlayerStat } from '../../types';
 import { api } from '../../services/api';
 
 interface FixtureManagerProps {
@@ -63,6 +64,7 @@ export const FixtureManager: React.FC<FixtureManagerProps> = ({
   const [matchStatus, setMatchStatus] = useState<'scheduled' | 'live' | 'completed'>('scheduled');
   const [potmPlayerId, setPotmPlayerId] = useState<string>('');
   const [potmPerformance, setPotmPerformance] = useState('');
+  const [playerStats, setPlayerStats] = useState<MatchPlayerStat[]>([]);
   const [matchNotes, setMatchNotes] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
@@ -146,13 +148,69 @@ export const FixtureManager: React.FC<FixtureManagerProps> = ({
     setMatchStatus(f.status);
     setPotmPlayerId(f.playerOfTheMatch?.playerId || '');
     setPotmPerformance(f.playerOfTheMatch?.performance || '');
+    setPlayerStats(f.playerStats ? f.playerStats.map((p) => ({ ...p })) : []);
     setMatchNotes(f.notes || '');
     setScheduledDate(f.scheduledDate || '');
     setScheduledTime(f.scheduledTime || '');
     setVenueLocation(f.venueLocation || '');
   };
 
-  // Save Match Updates (both score and fixture details)
+  // Player Stats Row Helpers
+  const handleAddPlayerStatRow = () => {
+    const hTeam = teams.find((t) => t.id === editHomeTeamId);
+    const aTeam = teams.find((t) => t.id === editAwayTeamId);
+    const defaultTeam = hTeam || aTeam;
+    const defaultPlayer = defaultTeam?.players[0];
+
+    const newStat: MatchPlayerStat = {
+      playerId: defaultPlayer?.id || '',
+      playerName: defaultPlayer?.name || '',
+      teamId: defaultTeam?.id || '',
+      teamName: defaultTeam?.name || '',
+      goals: 0,
+      assists: 0,
+      runs: 0,
+      wickets: 0,
+      overs: 0,
+      baskets: 0,
+      rebounds: 0,
+      points: 0,
+    };
+    setPlayerStats([...playerStats, newStat]);
+  };
+
+  const handlePlayerStatPlayerSelect = (idx: number, playerId: string) => {
+    const hTeam = teams.find((t) => t.id === editHomeTeamId);
+    const aTeam = teams.find((t) => t.id === editAwayTeamId);
+    const allMatchPlayers = [
+      ...(hTeam ? hTeam.players.map((p) => ({ ...p, teamId: hTeam.id, teamName: hTeam.name })) : []),
+      ...(aTeam ? aTeam.players.map((p) => ({ ...p, teamId: aTeam.id, teamName: aTeam.name })) : []),
+    ];
+    const found = allMatchPlayers.find((p) => p.id === playerId);
+    if (!found) return;
+
+    const updated = [...playerStats];
+    updated[idx] = {
+      ...updated[idx],
+      playerId: found.id,
+      playerName: found.name,
+      teamId: found.teamId,
+      teamName: found.teamName,
+    };
+    setPlayerStats(updated);
+  };
+
+  const handleUpdatePlayerStat = (idx: number, updates: Partial<MatchPlayerStat>) => {
+    const updated = [...playerStats];
+    updated[idx] = { ...updated[idx], ...updates };
+    setPlayerStats(updated);
+  };
+
+  const handleRemovePlayerStatRow = (idx: number) => {
+    setPlayerStats(playerStats.filter((_, i) => i !== idx));
+  };
+
+  // Save Match Updates (both score, player stats, and fixture details)
   const handleSaveResult = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeFixture) return;
@@ -180,6 +238,9 @@ export const FixtureManager: React.FC<FixtureManagerProps> = ({
       const hTeamObj = teams.find((t) => t.id === editHomeTeamId);
       const aTeamObj = teams.find((t) => t.id === editAwayTeamId);
 
+      // Filter out invalid/empty player stat entries
+      const validPlayerStats = playerStats.filter((ps) => ps.playerId && ps.playerName);
+
       await api.updateFixture(activeFixture.id, {
         homeTeamId: editHomeTeamId,
         awayTeamId: editAwayTeamId,
@@ -190,6 +251,7 @@ export const FixtureManager: React.FC<FixtureManagerProps> = ({
         homeScore: homeScore !== '' ? Number(homeScore) : null,
         awayScore: awayScore !== '' ? Number(awayScore) : null,
         playerOfTheMatch: potmObj,
+        playerStats: validPlayerStats,
         notes: matchNotes,
         scheduledDate,
         scheduledTime,
@@ -726,6 +788,202 @@ export const FixtureManager: React.FC<FixtureManagerProps> = ({
                     onChange={(e) => setPotmPerformance(e.target.value)}
                     className="w-full mt-2 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-1.5 text-xs text-slate-200"
                   />
+                )}
+              </div>
+
+              {/* OPTIONAL PLAYER PERFORMANCE STATS */}
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-emerald-400" />
+                    <div>
+                      <span className="text-xs font-bold text-white uppercase tracking-wider">
+                        Player Performance Stats
+                      </span>
+                      <span className="ml-2 text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                        Optional • {currentEvent.sport}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddPlayerStatRow}
+                    className="flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-emerald-500/30 transition-all"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Player Stat</span>
+                  </button>
+                </div>
+
+                {playerStats.length === 0 ? (
+                  <p className="text-[11px] text-slate-500 italic">
+                    No player contributions logged yet. Click "+ Add Player Stat" to record goals, wickets, runs, baskets, etc.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {playerStats.map((stat, idx) => {
+                      const isFootball = /football|soccer/i.test(currentEvent.sport);
+                      const isCricket = /cricket/i.test(currentEvent.sport);
+                      const isBasketball = /basketball/i.test(currentEvent.sport);
+
+                      return (
+                        <div
+                          key={idx}
+                          className="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 text-xs"
+                        >
+                          <select
+                            value={stat.playerId}
+                            onChange={(e) => handlePlayerStatPlayerSelect(idx, e.target.value)}
+                            className="flex-1 min-w-[150px] bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                          >
+                            <option value="">-- Choose Player --</option>
+                            <optgroup label={`${homeTeam?.name || 'Home'} Players`}>
+                              {homeTeam?.players.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  #{p.jerseyNumber} {p.name} ({homeTeam.shortCode || homeTeam.name})
+                                </option>
+                              ))}
+                            </optgroup>
+                            <optgroup label={`${awayTeam?.name || 'Away'} Players`}>
+                              {awayTeam?.players.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  #{p.jerseyNumber} {p.name} ({awayTeam.shortCode || awayTeam.name})
+                                </option>
+                              ))}
+                            </optgroup>
+                          </select>
+
+                          {/* Dynamic Sport Inputs */}
+                          {isFootball && (
+                            <>
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-slate-400 font-bold">⚽ Goals</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={stat.goals ?? 0}
+                                  onChange={(e) =>
+                                    handleUpdatePlayerStat(idx, { goals: parseInt(e.target.value, 10) || 0 })
+                                  }
+                                  className="w-14 bg-slate-950 border border-slate-700 rounded-lg py-1 text-center font-mono text-xs text-white"
+                                />
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-slate-400 font-bold">🅰 Ast</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={stat.assists ?? 0}
+                                  onChange={(e) =>
+                                    handleUpdatePlayerStat(idx, { assists: parseInt(e.target.value, 10) || 0 })
+                                  }
+                                  className="w-14 bg-slate-950 border border-slate-700 rounded-lg py-1 text-center font-mono text-xs text-white"
+                                />
+                              </div>
+                            </>
+                          )}
+
+                          {isCricket && (
+                            <>
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-slate-400 font-bold">🏏 Runs</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={stat.runs ?? 0}
+                                  onChange={(e) =>
+                                    handleUpdatePlayerStat(idx, { runs: parseInt(e.target.value, 10) || 0 })
+                                  }
+                                  className="w-14 bg-slate-950 border border-slate-700 rounded-lg py-1 text-center font-mono text-xs text-white"
+                                />
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-slate-400 font-bold">🎯 Wkts</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={stat.wickets ?? 0}
+                                  onChange={(e) =>
+                                    handleUpdatePlayerStat(idx, { wickets: parseInt(e.target.value, 10) || 0 })
+                                  }
+                                  className="w-14 bg-slate-950 border border-slate-700 rounded-lg py-1 text-center font-mono text-xs text-white"
+                                />
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-slate-400 font-bold">Overs</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.1"
+                                  value={stat.overs ?? 0}
+                                  onChange={(e) =>
+                                    handleUpdatePlayerStat(idx, { overs: parseFloat(e.target.value) || 0 })
+                                  }
+                                  className="w-14 bg-slate-950 border border-slate-700 rounded-lg py-1 text-center font-mono text-xs text-white"
+                                />
+                              </div>
+                            </>
+                          )}
+
+                          {isBasketball && (
+                            <>
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-slate-400 font-bold">🏀 Pts</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={stat.baskets ?? stat.points ?? 0}
+                                  onChange={(e) =>
+                                    handleUpdatePlayerStat(idx, {
+                                      baskets: parseInt(e.target.value, 10) || 0,
+                                      points: parseInt(e.target.value, 10) || 0,
+                                    })
+                                  }
+                                  className="w-14 bg-slate-950 border border-slate-700 rounded-lg py-1 text-center font-mono text-xs text-white"
+                                />
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-slate-400 font-bold">Reb</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={stat.rebounds ?? 0}
+                                  onChange={(e) =>
+                                    handleUpdatePlayerStat(idx, { rebounds: parseInt(e.target.value, 10) || 0 })
+                                  }
+                                  className="w-14 bg-slate-950 border border-slate-700 rounded-lg py-1 text-center font-mono text-xs text-white"
+                                />
+                              </div>
+                            </>
+                          )}
+
+                          {!isFootball && !isCricket && !isBasketball && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-slate-400 font-bold">Points</span>
+                              <input
+                                type="number"
+                                min="0"
+                                value={stat.points ?? 0}
+                                onChange={(e) =>
+                                  handleUpdatePlayerStat(idx, { points: parseInt(e.target.value, 10) || 0 })
+                                }
+                                className="w-16 bg-slate-950 border border-slate-700 rounded-lg py-1 text-center font-mono text-xs text-white"
+                              />
+                            </div>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePlayerStatRow(idx)}
+                            className="p-1.5 text-slate-500 hover:text-rose-400 transition-colors"
+                            title="Remove stat"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
 

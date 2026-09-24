@@ -177,7 +177,7 @@ export const api = {
   },
 
   // OCR helper
-  async parseRosterText(rawText: string): Promise<{ teamName: string; owner: string; coOwner: string; players: any[] }> {
+  async parseRosterText(rawText: string): Promise<{ teamName: string; owner: string; coOwner: string; contactNumber?: string; players: any[] }> {
     const res = await fetch(`${BASE_URL}/ocr/parse`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

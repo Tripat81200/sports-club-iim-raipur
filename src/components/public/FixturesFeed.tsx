@@ -269,6 +269,30 @@ export const FixturesFeed: React.FC<FixturesFeedProps> = ({
                   </div>
                 )}
 
+                {/* Key Performers / Scorers Breakdown */}
+                {fixture.playerStats && fixture.playerStats.length > 0 && (
+                  <div className="mb-3 py-1.5 px-3 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-300">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                      Key Contributions
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1">
+                      {fixture.playerStats.slice(0, 5).map((ps, idx) => (
+                        <span key={idx} className="inline-flex items-center gap-1">
+                          <span className="text-white font-medium">{ps.playerName}</span>
+                          <span className="text-emerald-400 font-mono text-[10px] font-bold">
+                            {ps.goals ? `${ps.goals}⚽ ` : ''}
+                            {ps.assists ? `${ps.assists}🅰 ` : ''}
+                            {ps.runs ? `${ps.runs}r ` : ''}
+                            {ps.wickets ? `${ps.wickets}w ` : ''}
+                            {ps.baskets ? `${ps.baskets}pts ` : ''}
+                            {!ps.goals && !ps.assists && !ps.runs && !ps.wickets && !ps.baskets && ps.points ? `${ps.points}pts` : ''}
+                          </span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Card Footer: Date & Venue */}
                 <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 font-medium">
                   <span className="flex items-center gap-1">

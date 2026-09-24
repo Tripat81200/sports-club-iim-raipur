@@ -51,8 +51,8 @@
       "shortCode": "RRH",
       "color": "#10b981",
       "owner": "Aarav Sharma (PGP-1)",
-      "coOwner": "Priya Verma (PGP-2)",
-      "contactNumber": "+91 98765 43210",
+      "coOwner": "Verified Co-Owner Edit",
+      "contactNumber": "+91 99999 88888",
       "players": [
         {
           "id": "p1_1",
@@ -400,7 +400,15 @@
       "homeScore": null,
       "awayScore": null,
       "playerOfTheMatch": null,
-      "notes": ""
+      "notes": "",
+      "playerStats": [
+        {
+          "playerId": "p1",
+          "playerName": "Aarav Sharma",
+          "goals": 2,
+          "assists": 1
+        }
+      ]
     },
     {
       "id": "fix_1789910644995_2",

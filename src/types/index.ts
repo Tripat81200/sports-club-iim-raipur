@@ -53,6 +53,22 @@ export interface PlayerOfTheMatch {
   performance?: string;
 }
 
+export interface MatchPlayerStat {
+  playerId: string;
+  playerName: string;
+  teamId: string;
+  teamName?: string;
+  // Sport-specific performance stats (all optional)
+  goals?: number;      // Football
+  assists?: number;    // Football / Basketball
+  runs?: number;       // Cricket
+  wickets?: number;    // Cricket
+  overs?: number;      // Cricket
+  baskets?: number;    // Basketball (or points)
+  rebounds?: number;   // Basketball
+  points?: number;     // Badminton / TT / Volleyball / General
+}
+
 export interface Fixture {
   id: string;
   eventId: string;
@@ -69,6 +85,7 @@ export interface Fixture {
   homeScore: number | null;
   awayScore: number | null;
   playerOfTheMatch: PlayerOfTheMatch | null;
+  playerStats?: MatchPlayerStat[];
   notes?: string;
 }
 

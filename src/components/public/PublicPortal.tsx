@@ -36,11 +36,13 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
       {/* Stadium Hero Banner & Match Ticker */}
       <HeroTicker event={event} fixtures={fixtures} />
 
-      {/* Standings Points Table */}
+      {/* Standings Points Table & Top Performers */}
       <Leaderboard
         standings={standings}
         scoringRules={event.scoringRules}
         teams={teams}
+        fixtures={fixtures}
+        sport={event.sport}
         onSelectTeam={(t) => setSelectedTeam(t)}
       />
 

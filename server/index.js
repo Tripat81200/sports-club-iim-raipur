@@ -240,6 +240,7 @@ app.post('/api/fixtures', (req, res) => {
     homeScore: req.body.homeScore !== undefined && req.body.homeScore !== '' ? Number(req.body.homeScore) : null,
     awayScore: req.body.awayScore !== undefined && req.body.awayScore !== '' ? Number(req.body.awayScore) : null,
     playerOfTheMatch: req.body.playerOfTheMatch || null,
+    playerStats: req.body.playerStats || [],
     notes: req.body.notes || '',
   };
   db.fixtures.push(newFixture);
@@ -548,40 +549,124 @@ app.post('/api/ocr/parse', (req, res) => {
   const { rawText } = req.body;
   if (!rawText) return res.status(400).json({ error: 'rawText is required' });
 
-  // Intelligent regex extraction of team names and players from unstructured text
+  // Intelligent regex extraction of team names, owner, co-owner, and players
   const lines = rawText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   let parsedTeamName = 'Imported Squad';
   let owner = 'N/A';
   let coOwner = 'N/A';
+  let contactNumber = '';
   const players = [];
 
-  for (const line of lines) {
-    if (/team\s*(name|:)/i.test(line)) {
-      parsedTeamName = line.replace(/team\s*(name|:)/i, '').replace(/[:\-]/g, '').trim();
-    } else if (/owner\s*(name|:)/i.test(line)) {
-      owner = line.replace(/owner\s*(name|:)/i, '').replace(/[:\-]/g, '').trim();
-    } else if (/co-?owner\s*(name|:)/i.test(line)) {
-      coOwner = line.replace(/co-?owner\s*(name|:)/i, '').replace(/[:\-]/g, '').trim();
-    } else {
-      // Look for player names, optionally with jersey numbers e.g. "10 - Aarav Sharma (Forward)" or "1. Kabir Malhotra"
-      const match = line.match(/^(\d+)[\.\s\-\:]+([A-Za-z\s]+)(?:\((.*?)\))?/);
-      if (match) {
-        players.push({
-          id: `p_${Date.now()}_${players.length + 1}`,
-          jerseyNumber: parseInt(match[1], 10) || players.length + 1,
-          name: match[2].trim(),
-          role: match[3] ? match[3].trim() : 'Player',
-          isCaptain: /captain|\(c\)/i.test(line),
-        });
-      } else if (line.length > 2 && !/roster|squad|tournament|players|contact/i.test(line)) {
+  const coOwnerRegex = /(?:co[\s\-\_\.]*owner|joint[\s\-\_\.]*owner|co[\s\-\_\.]*manager|co[\s\-\_\.]*head)\s*[:\-\=]?\s*(.*)/i;
+  const ownerRegex = /(?:(?<!co[\s\-\_\.]*)owner|manager|team[\s\-\_\.]*manager|head[\s\-\_\.]*coach|mentor)\s*[:\-\=]?\s*(.*)/i;
+  const teamRegex = /(?:team[\s\-\_\.]*name|club[\s\-\_\.]*name|franchise|squad[\s\-\_\.]*name)\s*[:\-\=]?\s*(.*)/i;
+  const contactRegex = /(?:contact|phone|mobile|call|whatsapp|tel)\s*[:\-\=]?\s*([0-9\+\-\s]{8,15})/i;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Check contact number
+    const contactMatch = line.match(contactRegex);
+    if (contactMatch && !contactNumber) {
+      contactNumber = contactMatch[1].trim();
+    }
+
+    // Check if line contains BOTH owner and co-owner (e.g. "Owner: Aarav | Co-Owner: Rohan")
+    if (/(?:co[\s\-\_\.]*owner|joint[\s\-\_\.]*owner)/i.test(line) && /(?<!co[\s\-\_\.]*)owner/i.test(line)) {
+      const parts = line.split(/[|,\/•;]/);
+      for (const part of parts) {
+        const coMatch = part.match(coOwnerRegex);
+        if (coMatch && coMatch[1]?.trim()) {
+          coOwner = coMatch[1].replace(/[:\-]/g, '').trim();
+        }
+        const oMatch = part.match(ownerRegex);
+        if (oMatch && oMatch[1]?.trim() && !/(?:co[\s\-\_\.]*owner|joint[\s\-\_\.]*owner)/i.test(part)) {
+          owner = oMatch[1].replace(/[:\-]/g, '').trim();
+        }
+      }
+      continue;
+    }
+
+    // Check Co-Owner FIRST to eliminate collision with "owner" substring
+    if (coOwnerRegex.test(line)) {
+      const match = line.match(coOwnerRegex);
+      let val = match && match[1] ? match[1].replace(/[:\-]/g, '').trim() : '';
+      if (!val && i + 1 < lines.length && !/(team|owner|roster|squad|player|\d+)/i.test(lines[i + 1])) {
+        // Multi-line: label on this line, value on next line
+        val = lines[i + 1].trim();
+        i++;
+      }
+      if (val) coOwner = val;
+      continue;
+    }
+
+    // Check Owner SECOND (ensuring line does NOT contain co-owner)
+    if (ownerRegex.test(line) && !/(?:co[\s\-\_\.]*owner|joint[\s\-\_\.]*owner)/i.test(line)) {
+      const match = line.match(ownerRegex);
+      let val = match && match[1] ? match[1].replace(/[:\-]/g, '').trim() : '';
+      if (!val && i + 1 < lines.length && !/(team|owner|roster|squad|player|\d+)/i.test(lines[i + 1])) {
+        // Multi-line: label on this line, value on next line
+        val = lines[i + 1].trim();
+        i++;
+      }
+      if (val) owner = val;
+      continue;
+    }
+
+    // Check Team Name
+    if (teamRegex.test(line) || /^team\s*[:\-]/i.test(line)) {
+      const match = line.match(teamRegex) || line.match(/^team\s*[:\-]?\s*(.*)/i);
+      let val = match && match[1] ? match[1].replace(/[:\-]/g, '').trim() : '';
+      if (!val && i + 1 < lines.length && !/(owner|roster|player|\d+)/i.test(lines[i + 1])) {
+        val = lines[i + 1].trim();
+        i++;
+      }
+      if (val) parsedTeamName = val;
+      continue;
+    }
+
+    // Ignore section headers like "PLAYERS:", "SQUAD:", "ROSTER:"
+    if (/^(players|squad|roster|lineup|team members)\s*[:\-]?$/i.test(line)) {
+      continue;
+    }
+
+    // Player with jersey number or role:
+    // e.g. "10. Aarav Sharma (Forward) (C)", "7 - Kabir Malhotra - Striker", "#18 Virat Kohli (Captain)"
+    const playerWithNumber = line.match(/^(?:#|\b)?(\d+)[\.\s\-\:\)\/\|]+([A-Za-z\s\.\'\-]+?)(?:\s*[\-\|\(]([^\)]+)[\)]?)?$/);
+    if (playerWithNumber) {
+      const num = parseInt(playerWithNumber[1], 10);
+      const rawName = playerWithNumber[2].trim();
+      const rawRole = playerWithNumber[3] ? playerWithNumber[3].trim() : 'Player';
+      const isCaptain = /captain|\(c\)|\[c\]|\bcpt\b/i.test(line);
+
+      players.push({
+        id: `p_${Date.now()}_${players.length + 1}`,
+        jerseyNumber: !isNaN(num) ? num : players.length + 1,
+        name: rawName.replace(/\s*\((c|captain)\)/i, '').trim(),
+        role: rawRole.replace(/\s*\((c|captain)\)/i, '').trim() || 'Player',
+        isCaptain,
+      });
+    } else if (line.length >= 2 && !/roster|squad|tournament|players|contact|venue|schedule|date|iim\s*raipur/i.test(line)) {
+      // Clean standalone player name
+      const isCaptain = /captain|\(c\)|\[c\]/i.test(line);
+      const cleanName = line.replace(/\s*\((c|captain|cpt)\)/i, '').replace(/^[•\-\*]\s*/, '').trim();
+      if (cleanName.length > 1) {
         players.push({
           id: `p_${Date.now()}_${players.length + 1}`,
           jerseyNumber: players.length + 1,
-          name: line,
+          name: cleanName,
           role: 'Player',
-          isCaptain: false,
+          isCaptain,
         });
       }
+    }
+  }
+
+  // Fallback for team name: if still 'Imported Squad', check if the first line is a title
+  if (parsedTeamName === 'Imported Squad' && lines.length > 0) {
+    const firstLine = lines[0];
+    if (!/owner|player|\d+|roster|squad|contact|date/i.test(firstLine) && firstLine.length <= 40) {
+      parsedTeamName = firstLine.replace(/[:\-]/g, '').trim();
     }
   }
 
@@ -589,6 +674,7 @@ app.post('/api/ocr/parse', (req, res) => {
     teamName: parsedTeamName,
     owner,
     coOwner,
+    contactNumber,
     players,
   });
 });
