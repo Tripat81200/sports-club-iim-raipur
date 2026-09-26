@@ -126,6 +126,7 @@ app.post('/api/teams', (req, res) => {
     name: req.body.name,
     shortCode: req.body.shortCode || req.body.name.substring(0, 3).toUpperCase(),
     color: req.body.color || '#10b981',
+    logoUrl: req.body.logoUrl || null,
     owner: req.body.owner || 'N/A',
     coOwner: req.body.coOwner || 'N/A',
     contactNumber: req.body.contactNumber || '',
@@ -152,6 +153,7 @@ app.post('/api/teams/bulk', (req, res) => {
       name: t.name,
       shortCode: t.shortCode || t.name.substring(0, 3).toUpperCase(),
       color: t.color || '#10b981',
+      logoUrl: t.logoUrl || null,
       owner: t.owner || 'N/A',
       coOwner: t.coOwner || 'N/A',
       contactNumber: t.contactNumber || '',
@@ -345,6 +347,7 @@ app.get('/api/standings/:eventId', (req, res) => {
       teamName: t.name,
       shortCode: t.shortCode,
       color: t.color,
+      logoUrl: t.logoUrl || null,
       played: 0,
       won: 0,
       drawn: 0,
@@ -677,6 +680,36 @@ app.post('/api/ocr/parse', (req, res) => {
     contactNumber,
     players,
   });
+});
+
+// ========================
+// TOURNAMENT FULL STATE SYNC & BACKUP
+// ========================
+app.get('/api/export-state', (req, res) => {
+  const db = readDb();
+  res.json({
+    exportedAt: new Date().toISOString(),
+    version: '1.0',
+    data: db,
+  });
+});
+
+app.post('/api/sync-state', (req, res) => {
+  const { events, teams, fixtures } = req.body;
+  if (!events || !teams || !fixtures) {
+    return res.status(400).json({ error: 'Payload must contain events, teams, and fixtures' });
+  }
+
+  const db = {
+    events,
+    teams,
+    fixtures,
+    lastSyncedAt: new Date().toISOString(),
+  };
+
+  writeDb(db);
+  console.log(`[STATE SYNC] Tournament state synchronized with ${events.length} events, ${teams.length} teams, ${fixtures.length} fixtures`);
+  res.json({ success: true, message: 'Tournament state synced successfully', syncedAt: db.lastSyncedAt });
 });
 
 // Serve static files from the frontend build if available

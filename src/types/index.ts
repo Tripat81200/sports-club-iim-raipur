@@ -40,6 +40,7 @@ export interface Team {
   name: string;
   shortCode?: string;
   color?: string;
+  logoUrl?: string;
   owner: string;
   coOwner: string;
   contactNumber?: string;
@@ -95,6 +96,7 @@ export interface StandingsRow {
   teamName: string;
   shortCode?: string;
   color?: string;
+  logoUrl?: string;
   played: number;
   won: number;
   drawn: number;

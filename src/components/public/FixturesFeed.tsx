@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, MapPin, Trophy, Search, Share2, Radio, CheckCircle2, Star } from 'lucide-react';
 import { Fixture, Team } from '../../types';
+import { TeamBadge } from '../common/TeamBadge';
 
 interface FixturesFeedProps {
   fixtures: Fixture[];
@@ -202,9 +203,11 @@ export const FixturesFeed: React.FC<FixturesFeedProps> = ({
                   {/* Home Team */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div
-                        className="w-3 h-3 rounded-full shrink-0"
-                        style={{ backgroundColor: getTeamColor(fixture.homeTeamId) }}
+                      <TeamBadge
+                        team={teams.find((t) => t.id === fixture.homeTeamId)}
+                        color={getTeamColor(fixture.homeTeamId)}
+                        name={fixture.homeTeamName}
+                        size="sm"
                       />
                       <span
                         className={`font-bold text-sm truncate ${
@@ -229,9 +232,11 @@ export const FixturesFeed: React.FC<FixturesFeedProps> = ({
                   {/* Away Team */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div
-                        className="w-3 h-3 rounded-full shrink-0"
-                        style={{ backgroundColor: getTeamColor(fixture.awayTeamId) }}
+                      <TeamBadge
+                        team={teams.find((t) => t.id === fixture.awayTeamId)}
+                        color={getTeamColor(fixture.awayTeamId)}
+                        name={fixture.awayTeamName}
+                        size="sm"
                       />
                       <span
                         className={`font-bold text-sm truncate ${

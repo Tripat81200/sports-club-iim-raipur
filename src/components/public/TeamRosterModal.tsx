@@ -28,12 +28,20 @@ export const TeamRosterModal: React.FC<TeamRosterModalProps> = ({ team, onClose 
           </button>
 
           <div className="flex items-center gap-4">
-            <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shadow-lg border border-white/20"
-              style={{ backgroundColor: team.color || '#10b981' }}
-            >
-              {team.shortCode || team.name.substring(0, 3).toUpperCase()}
-            </div>
+            {team.logoUrl ? (
+              <img
+                src={team.logoUrl}
+                alt={team.name}
+                className="w-14 h-14 rounded-2xl object-cover shadow-lg border border-white/20 bg-slate-950 shrink-0"
+              />
+            ) : (
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shadow-lg border border-white/20 shrink-0"
+                style={{ backgroundColor: team.color || '#10b981' }}
+              >
+                {team.shortCode || team.name.substring(0, 3).toUpperCase()}
+              </div>
+            )}
             <div>
               <h2 className="text-2xl font-black text-white tracking-tight">{team.name}</h2>
               <div className="flex flex-wrap items-center gap-2 mt-1">

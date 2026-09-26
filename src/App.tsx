@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './components/common/Header';
 import { PublicPortal } from './components/public/PublicPortal';
 import { AdminPortal } from './components/admin/AdminPortal';
+import { BackupModal } from './components/common/BackupModal';
 import { TournamentEvent, Team, Fixture, StandingsRow } from './types';
 import { api } from './services/api';
-import { Trophy } from 'lucide-react';
+import { Trophy, Check } from 'lucide-react';
 
 export function App() {
   const [events, setEvents] = useState<TournamentEvent[]>([]);
@@ -14,6 +15,10 @@ export function App() {
   // Check URL params for fan-only mode e.g. ?mode=fan
   const [isFanOnlyMode, setIsFanOnlyMode] = useState<boolean>(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
+
+  // Backup & Restore State
+  const [showBackupModal, setShowBackupModal] = useState<boolean>(false);
+  const [autoRestoredBanner, setAutoRestoredBanner] = useState<string | null>(null);
 
   const [teams, setTeams] = useState<Team[]>([]);
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
@@ -49,6 +54,55 @@ export function App() {
 
   useEffect(() => {
     loadEvents();
+  }, []);
+
+  // Auto-save active state to browser localStorage on any changes
+  useEffect(() => {
+    if (events.length > 0 && teams.length > 0) {
+      try {
+        localStorage.setItem(
+          'iimr_sports_hub_db_backup',
+          JSON.stringify({
+            events,
+            teams,
+            fixtures,
+            updatedAt: Date.now(),
+          })
+        );
+      } catch (err) {
+        console.warn('Failed to auto-save to localStorage:', err);
+      }
+    }
+  }, [events, teams, fixtures]);
+
+  // Check if server was reset (e.g. Render container spin-down) and auto-restore from browser backup
+  useEffect(() => {
+    const checkAndRestore = async () => {
+      try {
+        const localBackupRaw = localStorage.getItem('iimr_sports_hub_db_backup');
+        if (!localBackupRaw) return;
+        const backup = JSON.parse(localBackupRaw);
+        if (!backup.teams || backup.teams.length === 0) return;
+
+        const serverTeams = await api.getTeams();
+        if (backup.teams.length > serverTeams.length) {
+          console.log('[AUTO-RESTORE] Server disk reset detected. Restoring tournament state from browser storage...');
+          await api.syncState({
+            events: backup.events || events,
+            teams: backup.teams,
+            fixtures: backup.fixtures || [],
+          });
+          setAutoRestoredBanner('Your previously saved tournament teams and schedule have been restored to the server!');
+          setTimeout(() => setAutoRestoredBanner(null), 6000);
+          loadEvents();
+          if (selectedEvent) loadEventData();
+        }
+      } catch (err) {
+        console.warn('[AUTO-RESTORE] Check failed:', err);
+      }
+    };
+
+    checkAndRestore();
   }, []);
 
   // Load event-specific data (teams, fixtures, standings)
@@ -116,12 +170,27 @@ export function App() {
             setActivePortal('admin');
           }
         }}
+        onOpenBackupModal={() => setShowBackupModal(true)}
         liveMatchCount={liveMatches.length}
         isAdminAuthenticated={isAdminAuthenticated}
         onAdminLogin={handleAdminLogin}
         onAdminLogout={handleAdminLogout}
         isFanOnlyMode={isFanOnlyMode}
       />
+
+      {/* Auto-Restored Banner */}
+      {autoRestoredBanner && (
+        <div className="bg-emerald-500 text-slate-950 text-xs font-bold py-2.5 px-4 text-center flex items-center justify-center gap-2 animate-in slide-in-from-top">
+          <Check className="w-4 h-4 shrink-0" />
+          <span>{autoRestoredBanner}</span>
+          <button
+            onClick={() => setAutoRestoredBanner(null)}
+            className="ml-3 font-black text-slate-900 hover:text-black p-0.5"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Main Content Area */}
       <main className="flex-1">
@@ -146,6 +215,19 @@ export function App() {
           />
         )}
       </main>
+
+      {/* Backup, Save & Cloud Sync Modal */}
+      <BackupModal
+        isOpen={showBackupModal}
+        onClose={() => setShowBackupModal(false)}
+        events={events}
+        teams={teams}
+        fixtures={fixtures}
+        onDataRestored={() => {
+          loadEvents();
+          loadEventData();
+        }}
+      />
 
       {/* Footer with Sports Club IIM Raipur Branding */}
       <footer className="border-t border-slate-900 bg-[#06090e] py-8 text-center text-xs text-slate-400">

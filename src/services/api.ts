@@ -186,4 +186,21 @@ export const api = {
     if (!res.ok) throw new Error('Failed to parse roster text');
     return res.json();
   },
+
+  // State Sync & Backup
+  async exportState(): Promise<{ exportedAt: string; data: { events: any[]; teams: any[]; fixtures: any[] } }> {
+    const res = await fetch(`${BASE_URL}/export-state`);
+    if (!res.ok) throw new Error('Failed to export state');
+    return res.json();
+  },
+
+  async syncState(state: { events: any[]; teams: any[]; fixtures: any[] }): Promise<{ success: boolean; syncedAt: string }> {
+    const res = await fetch(`${BASE_URL}/sync-state`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state),
+    });
+    if (!res.ok) throw new Error('Failed to sync tournament state');
+    return res.json();
+  },
 };

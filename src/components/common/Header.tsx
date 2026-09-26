@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trophy, Shield, Users, Radio, Plus, Calendar, MapPin, Share2, Lock, Unlock, LogOut } from 'lucide-react';
+import { Trophy, Shield, Users, Radio, Plus, Calendar, MapPin, Share2, Lock, Unlock, LogOut, Save } from 'lucide-react';
 import { TournamentEvent } from '../../types';
 import { AdminPinModal } from './AdminPinModal';
 import { ShareFanModal } from './ShareFanModal';
@@ -11,6 +11,7 @@ interface HeaderProps {
   activePortal: 'public' | 'admin';
   onChangePortal: (portal: 'public' | 'admin') => void;
   onOpenCreateEvent: () => void;
+  onOpenBackupModal?: () => void;
   liveMatchCount: number;
   isAdminAuthenticated: boolean;
   onAdminLogin: () => void;
@@ -103,6 +104,18 @@ export const Header: React.FC<HeaderProps> = ({
               <Share2 className="w-3.5 h-3.5" />
               <span>Share Fan Link</span>
             </button>
+
+            {/* Save / Backup Button */}
+            {!isFanOnlyMode && onOpenBackupModal && (
+              <button
+                onClick={onOpenBackupModal}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 transition-all shadow-sm"
+                title="Save tournament data, download backup file, or sync to server"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Save & Backup</span>
+              </button>
+            )}
 
             {/* Portal Switcher Tabs */}
             {!isFanOnlyMode && (

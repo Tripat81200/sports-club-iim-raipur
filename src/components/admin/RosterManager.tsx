@@ -19,6 +19,7 @@ import {
 import * as XLSX from 'xlsx';
 import { Team, Player, TournamentEvent } from '../../types';
 import { api } from '../../services/api';
+import { TeamBadge } from '../common/TeamBadge';
 
 interface RosterManagerProps {
   currentEvent: TournamentEvent;
@@ -37,6 +38,7 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
   const [teamName, setTeamName] = useState('');
   const [shortCode, setShortCode] = useState('');
   const [color, setColor] = useState('#10b981');
+  const [logoUrl, setLogoUrl] = useState('');
   const [owner, setOwner] = useState('');
   const [coOwner, setCoOwner] = useState('');
   const [contactNumber, setContactNumber] = useState('');
@@ -46,6 +48,61 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
     { id: '3', name: '', jerseyNumber: 1, role: 'Goalkeeper', isCaptain: false },
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Helper to resize uploaded logo to keep base64 compact
+  const processImageFile = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_SIZE = 160;
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height = Math.round((height * MAX_SIZE) / width);
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width = Math.round((width * MAX_SIZE) / height);
+              height = MAX_SIZE;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/png', 0.85));
+          } else {
+            resolve(e.target?.result as string);
+          }
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleLogoFileChange = async (e: React.ChangeEvent<HTMLInputElement>, isEditing = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await processImageFile(file);
+      if (isEditing && editingTeam) {
+        setEditingTeam({ ...editingTeam, logoUrl: dataUrl });
+      } else {
+        setLogoUrl(dataUrl);
+      }
+    } catch (err) {
+      alert('Failed to process image file');
+    }
+  };
 
   // Edit Team State
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
@@ -115,6 +172,7 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
         name: teamName,
         shortCode: shortCode || teamName.substring(0, 3).toUpperCase(),
         color,
+        logoUrl: logoUrl.trim() || undefined,
         owner,
         coOwner,
         contactNumber,
@@ -124,6 +182,7 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
       // Reset
       setTeamName('');
       setShortCode('');
+      setLogoUrl('');
       setOwner('');
       setCoOwner('');
       setContactNumber('');
@@ -297,6 +356,7 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
         name: editingTeam.name.trim(),
         shortCode: (editingTeam.shortCode || editingTeam.name.substring(0, 3)).toUpperCase(),
         color: editingTeam.color || '#10b981',
+        logoUrl: editingTeam.logoUrl || null,
         owner: editingTeam.owner || 'N/A',
         coOwner: editingTeam.coOwner || 'N/A',
         contactNumber: editingTeam.contactNumber || '',
@@ -459,6 +519,51 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
                     className="w-10 h-10 rounded-xl cursor-pointer bg-transparent border-0"
                   />
                   <span className="text-xs font-mono text-slate-400">{color}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+                  Team Logo (Optional)
+                </label>
+                <div className="flex items-center gap-3">
+                  {logoUrl ? (
+                    <div className="relative group shrink-0">
+                      <img
+                        src={logoUrl}
+                        alt="Logo Preview"
+                        className="w-10 h-10 rounded-full object-cover border border-emerald-500/50 bg-slate-950"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setLogoUrl('')}
+                        className="absolute -top-1 -right-1 bg-rose-500 text-white rounded-full p-0.5 shadow hover:bg-rose-600"
+                        title="Remove Logo"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      className="w-10 h-10 rounded-full shrink-0 border border-dashed border-slate-700 flex items-center justify-center bg-slate-950 text-slate-500"
+                      style={{ backgroundColor: `${color}20` }}
+                    >
+                      <ImageIcon className="w-4 h-4" />
+                    </div>
+                  )}
+
+                  <div className="flex-1 flex flex-col gap-1">
+                    <label className="cursor-pointer inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors border border-slate-700">
+                      <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>{logoUrl ? 'Change Logo' : 'Upload Logo'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleLogoFileChange(e, false)}
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -816,10 +921,7 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <div
-                        className="w-3 h-3 rounded-full shrink-0"
-                        style={{ backgroundColor: t.color || '#10b981' }}
-                      />
+                      <TeamBadge team={t} size="sm" />
                       <span className="font-bold text-white text-sm truncate">{t.name}</span>
                       {t.shortCode && (
                         <span className="text-[10px] font-mono font-bold text-slate-500 uppercase">
@@ -972,6 +1074,50 @@ export const RosterManager: React.FC<RosterManagerProps> = ({
                     onChange={(e) => setEditingTeam({ ...editingTeam, coOwner: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
                   />
+                </div>
+              </div>
+
+              {/* Team Logo in Edit Modal */}
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+                  Team Logo (Optional)
+                </label>
+                <div className="flex items-center gap-3">
+                  {editingTeam.logoUrl ? (
+                    <div className="relative group shrink-0">
+                      <img
+                        src={editingTeam.logoUrl}
+                        alt="Logo Preview"
+                        className="w-10 h-10 rounded-full object-cover border border-emerald-500/50 bg-slate-950"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setEditingTeam({ ...editingTeam, logoUrl: undefined })}
+                        className="absolute -top-1 -right-1 bg-rose-500 text-white rounded-full p-0.5 shadow hover:bg-rose-600"
+                        title="Remove Logo"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      className="w-10 h-10 rounded-full shrink-0 border border-dashed border-slate-700 flex items-center justify-center bg-slate-950 text-slate-500"
+                      style={{ backgroundColor: `${editingTeam.color || '#10b981'}20` }}
+                    >
+                      <ImageIcon className="w-4 h-4" />
+                    </div>
+                  )}
+
+                  <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors border border-slate-700">
+                    <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>{editingTeam.logoUrl ? 'Change Logo' : 'Upload Team Logo'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleLogoFileChange(e, true)}
+                    />
+                  </label>
                 </div>
               </div>
 

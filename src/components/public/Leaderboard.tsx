@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Trophy, TrendingUp, Info, ChevronRight, Award, Star, Flame, Target, Medal, Users } from 'lucide-react';
 import { StandingsRow, ScoringRules, Team, Fixture } from '../../types';
+import { TeamBadge } from '../common/TeamBadge';
 
 interface LeaderboardProps {
   standings: StandingsRow[];
@@ -222,9 +223,12 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                     {/* Team Name */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="w-3.5 h-3.5 rounded-full shrink-0 shadow-sm"
-                          style={{ backgroundColor: row.color || '#10b981' }}
+                        <TeamBadge
+                          team={teamData}
+                          color={row.color}
+                          logoUrl={row.logoUrl || teamData?.logoUrl}
+                          name={row.teamName}
+                          size="sm"
                         />
                         <div>
                           <div className="font-bold text-white group-hover:text-emerald-400 transition-colors flex items-center gap-1.5">
