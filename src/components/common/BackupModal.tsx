@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, Upload, RefreshCw, Check, X, Shield, HardDrive, AlertCircle, Database } from 'lucide-react';
 import { api } from '../../services/api';
 import { TournamentEvent, Team, Fixture } from '../../types';
@@ -23,6 +23,19 @@ export const BackupModal: React.FC<BackupModalProps> = ({
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [cloudStatus, setCloudStatus] = useState<{
+    connected: boolean;
+    storageType: string;
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      api.getStorageStatus()
+        .then((res) => setCloudStatus(res))
+        .catch(() => setCloudStatus(null));
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -166,15 +179,29 @@ export const BackupModal: React.FC<BackupModalProps> = ({
           </div>
         )}
 
-        {/* Explanation Note */}
-        <div className="mb-5 p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-300 space-y-1">
-          <div className="font-bold text-amber-400 flex items-center gap-1.5 text-[11px] uppercase tracking-wider">
-            <HardDrive className="w-3.5 h-3.5" />
-            <span>Why did my data reset?</span>
+        {/* Cloud Database Status Card */}
+        <div className={`mb-5 p-3.5 rounded-2xl border text-xs ${
+          cloudStatus?.connected
+            ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-300'
+            : 'bg-slate-950 border-slate-800 text-slate-300'
+        }`}>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="font-bold flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
+              <Database className={`w-3.5 h-3.5 ${cloudStatus?.connected ? 'text-emerald-400' : 'text-amber-400'}`} />
+              {cloudStatus?.connected ? 'Cloud Database: MongoDB Atlas (Connected)' : 'Storage Mode: Local File / Render Free'}
+            </span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+              cloudStatus?.connected
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+            }`}>
+              {cloudStatus?.connected ? '24/7 Multi-Device Sync Active' : 'Single Laptop Cache'}
+            </span>
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed">
-            Free cloud hosts (like Render Free Tier) automatically spin down after 15 minutes of inactivity and reset temporary disks on wake-up.
-            Use the buttons below to download a permanent backup or save changes so your data is never lost!
+            {cloudStatus?.connected
+              ? 'All teams, scores, and fixtures are permanently saved to MongoDB Atlas in the cloud. Any changes are automatically visible to all laptops, phones, and fans 24/7!'
+              : 'Add MONGODB_URI to Render Environment Variables to permanently store data in MongoDB Atlas so changes sync across all laptops and fans 24/7.'}
           </p>
         </div>
 

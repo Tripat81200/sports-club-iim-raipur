@@ -203,4 +203,17 @@ export const api = {
     if (!res.ok) throw new Error('Failed to sync tournament state');
     return res.json();
   },
+
+  async getStorageStatus(): Promise<{
+    connected: boolean;
+    storageType: 'mongodb_atlas' | 'local_file';
+    message: string;
+    eventsCount: number;
+    teamsCount: number;
+    fixturesCount: number;
+  }> {
+    const res = await fetch(`${BASE_URL}/storage-status`);
+    if (!res.ok) throw new Error('Failed to fetch storage status');
+    return res.json();
+  },
 };

@@ -3,6 +3,7 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { MongoClient } from 'mongodb';
 import {
   generateRoundRobin,
   generateKnockout,
@@ -20,23 +21,119 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// Helper to read database
-function readDb() {
+// In-memory cache for ultra-fast sync reads & writes
+let memoryDb = null;
+let mongoClient = null;
+let mongoCollection = null;
+let isMongoConnected = false;
+
+function initLocalDb() {
   try {
     const raw = fs.readFileSync(DB_FILE, 'utf-8');
-    return JSON.parse(raw);
+    memoryDb = JSON.parse(raw);
   } catch (err) {
-    console.error('Error reading DB:', err);
-    return { events: [], teams: [], fixtures: [] };
+    console.error('Error reading local DB:', err);
+    memoryDb = { events: [], teams: [], fixtures: [] };
   }
+}
+initLocalDb();
+
+async function initMongoDB() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    console.log('[Storage] MONGODB_URI environment variable not set. Running with local store.json.');
+    return;
+  }
+
+  try {
+    console.log('[Storage] Connecting to MongoDB Atlas...');
+    mongoClient = new MongoClient(uri, {
+      serverSelectionTimeoutMS: 8000,
+    });
+    await mongoClient.connect();
+    const db = mongoClient.db('iimr_sports');
+    mongoCollection = db.collection('tournament_state');
+    isMongoConnected = true;
+    console.log('----------------------------------------------------');
+    console.log('>>> [Storage] CONNECTED TO MONGODB ATLAS 24/7 CLOUD DB!');
+    console.log('----------------------------------------------------');
+
+    // Fetch existing state from MongoDB Atlas
+    const cloudState = await mongoCollection.findOne({ id: 'main_state' });
+    if (cloudState && Array.isArray(cloudState.events) && Array.isArray(cloudState.teams)) {
+      memoryDb = {
+        events: cloudState.events,
+        teams: cloudState.teams,
+        fixtures: cloudState.fixtures || [],
+        lastSyncedAt: cloudState.lastSyncedAt || new Date().toISOString(),
+      };
+      console.log(`[Storage] Loaded data from MongoDB Atlas: ${memoryDb.events.length} events, ${memoryDb.teams.length} teams, ${memoryDb.fixtures.length} fixtures.`);
+      try {
+        fs.writeFileSync(DB_FILE, JSON.stringify(memoryDb, null, 2), 'utf-8');
+      } catch (e) {}
+    } else {
+      // First time on MongoDB Atlas: Seed with initial data
+      console.log('[Storage] Initializing MongoDB Atlas with tournament state...');
+      await mongoCollection.updateOne(
+        { id: 'main_state' },
+        {
+          $set: {
+            id: 'main_state',
+            events: memoryDb.events,
+            teams: memoryDb.teams,
+            fixtures: memoryDb.fixtures,
+            lastSyncedAt: new Date().toISOString(),
+          },
+        },
+        { upsert: true }
+      );
+      console.log('[Storage] MongoDB Atlas seeded successfully!');
+    }
+  } catch (err) {
+    isMongoConnected = false;
+    console.error('[Storage Error] Failed to connect to MongoDB Atlas:', err.message);
+    console.log('[Storage Fallback] Continuing with local file storage (store.json).');
+  }
+}
+
+// Start MongoDB async connection
+initMongoDB();
+
+// Helper to read database
+function readDb() {
+  if (!memoryDb) {
+    initLocalDb();
+  }
+  return memoryDb;
 }
 
 // Helper to write database
 function writeDb(data) {
+  memoryDb = data;
   try {
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
   } catch (err) {
-    console.error('Error writing DB:', err);
+    console.error('Error writing local DB:', err);
+  }
+
+  if (isMongoConnected && mongoCollection) {
+    mongoCollection
+      .updateOne(
+        { id: 'main_state' },
+        {
+          $set: {
+            id: 'main_state',
+            events: data.events,
+            teams: data.teams,
+            fixtures: data.fixtures,
+            lastSyncedAt: new Date().toISOString(),
+          },
+        },
+        { upsert: true }
+      )
+      .catch((err) => {
+        console.error('[Storage Error] Failed to sync to MongoDB Atlas:', err.message);
+      });
   }
 }
 
@@ -710,6 +807,19 @@ app.post('/api/sync-state', (req, res) => {
   writeDb(db);
   console.log(`[STATE SYNC] Tournament state synchronized with ${events.length} events, ${teams.length} teams, ${fixtures.length} fixtures`);
   res.json({ success: true, message: 'Tournament state synced successfully', syncedAt: db.lastSyncedAt });
+});
+
+app.get('/api/storage-status', (req, res) => {
+  res.json({
+    connected: isMongoConnected,
+    storageType: isMongoConnected ? 'mongodb_atlas' : 'local_file',
+    message: isMongoConnected
+      ? 'Connected to MongoDB Atlas 24/7 Cloud Database'
+      : 'Using local temporary storage. Set MONGODB_URI on Render for 24/7 cloud sync.',
+    eventsCount: memoryDb?.events?.length || 0,
+    teamsCount: memoryDb?.teams?.length || 0,
+    fixturesCount: memoryDb?.fixtures?.length || 0,
+  });
 });
 
 // Serve static files from the frontend build if available
