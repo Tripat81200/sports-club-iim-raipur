@@ -16,8 +16,12 @@ import {
   X,
   Check,
   Activity,
+  FileSpreadsheet,
+  Upload,
+  Download,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import * as XLSX from 'xlsx';
 import { Fixture, Team, TournamentEvent, TournamentFormat, MatchPlayerStat } from '../../types';
 import { api } from '../../services/api';
 
@@ -42,6 +46,13 @@ export const FixtureManager: React.FC<FixtureManagerProps> = ({
     currentEvent.format || 'round_robin'
   );
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Excel Bulk Import State
+  const [showExcelModal, setShowExcelModal] = useState(false);
+  const [excelFixturesPreview, setExcelFixturesPreview] = useState<any[]>([]);
+  const [excelFileName, setExcelFileName] = useState('');
+  const [replaceExistingFixtures, setReplaceExistingFixtures] = useState(false);
+  const [isImportingExcel, setIsImportingExcel] = useState(false);
 
   // Manual Creation Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -70,6 +81,146 @@ export const FixtureManager: React.FC<FixtureManagerProps> = ({
   const [scheduledTime, setScheduledTime] = useState('');
   const [venueLocation, setVenueLocation] = useState('');
   const [isSavingMatch, setIsSavingMatch] = useState(false);
+
+  // Download Sample Template for Fixtures Excel
+  const handleDownloadTemplate = () => {
+    const sampleRows = [
+      {
+        'Round': 'League Match 1',
+        'Home Team': teams[0]?.name || 'Raipur Rhinos',
+        'Away Team': teams[1]?.name || 'Naya Raipur Knights',
+        'Date': new Date().toISOString().split('T')[0],
+        'Time': '17:00',
+        'Venue': 'Main Sports Complex - Ground A',
+        'Home Score': '',
+        'Away Score': '',
+        'Notes': 'Opening fixture',
+      },
+      {
+        'Round': 'League Match 2',
+        'Home Team': teams[2]?.name || 'Mahanadi Warriors',
+        'Away Team': teams[3]?.name || 'Bastar Blasters',
+        'Date': new Date().toISOString().split('T')[0],
+        'Time': '19:00',
+        'Venue': 'Main Sports Complex - Ground B',
+        'Home Score': '',
+        'Away Score': '',
+        'Notes': '',
+      },
+      {
+        'Round': 'Semi Final 1',
+        'Home Team': teams[4]?.name || 'Chhattisgarh Cheetahs',
+        'Away Team': teams[5]?.name || 'Durg Dynamos',
+        'Date': new Date(Date.now() + 86400000).toISOString().split('T')[0],
+        'Time': '18:00',
+        'Venue': 'Main Sports Complex',
+        'Home Score': '',
+        'Away Score': '',
+        'Notes': 'Knockout Match',
+      },
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(sampleRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Fixtures');
+    XLSX.writeFile(wb, `${currentEvent.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_fixtures_template.xlsx`);
+  };
+
+  // Parse Excel / CSV file
+  const handleExcelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setExcelFileName(file.name);
+    const reader = new FileReader();
+
+    reader.onload = (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary', cellDates: true });
+        const wsName = wb.SheetNames[0];
+        const ws = wb.Sheets[wsName];
+        const rows: any[] = XLSX.utils.sheet_to_json(ws);
+
+        if (!rows || rows.length === 0) {
+          alert('The uploaded spreadsheet appears to be empty.');
+          return;
+        }
+
+        const parsed = rows.map((r, idx) => {
+          const round = r['Round'] || r['Round Name'] || r['Stage'] || r['Match'] || `Match ${idx + 1}`;
+          const hTeam = r['Home Team'] || r['Team 1'] || r['Home'] || r['Team A'] || r['home'] || '';
+          const aTeam = r['Away Team'] || r['Team 2'] || r['Away'] || r['Team B'] || r['away'] || '';
+
+          let dateStr = r['Date'] || r['Match Date'] || r['Scheduled Date'] || r['date'] || '';
+          if (dateStr instanceof Date) {
+            dateStr = dateStr.toISOString().split('T')[0];
+          } else if (typeof dateStr === 'string' && dateStr.trim()) {
+            dateStr = dateStr.trim();
+          } else {
+            dateStr = new Date().toISOString().split('T')[0];
+          }
+
+          let timeStr = r['Time'] || r['Match Time'] || r['Scheduled Time'] || r['time'] || '17:00';
+          if (typeof timeStr === 'number') {
+            const totalMinutes = Math.round(timeStr * 24 * 60);
+            const hrs = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+            const mins = String(totalMinutes % 60).padStart(2, '0');
+            timeStr = `${hrs}:${mins}`;
+          }
+
+          const venue = r['Venue'] || r['Location'] || r['Ground'] || r['Court'] || 'Main Sports Complex';
+          const hScore = r['Home Score'] !== undefined && r['Home Score'] !== '' ? r['Home Score'] : (r['Home Goals'] || r['Score 1'] || '');
+          const aScore = r['Away Score'] !== undefined && r['Away Score'] !== '' ? r['Away Score'] : (r['Away Goals'] || r['Score 2'] || '');
+          const notes = r['Notes'] || r['Remarks'] || '';
+
+          return {
+            roundNumber: idx + 1,
+            roundName: String(round).trim(),
+            homeTeamName: String(hTeam).trim(),
+            awayTeamName: String(aTeam).trim(),
+            scheduledDate: String(dateStr),
+            scheduledTime: String(timeStr).trim(),
+            venueLocation: String(venue).trim(),
+            homeScore: hScore !== '' ? Number(hScore) : null,
+            awayScore: aScore !== '' ? Number(aScore) : null,
+            status: (hScore !== '' && aScore !== '') ? 'completed' : 'scheduled',
+            notes: String(notes).trim(),
+          };
+        }).filter((f) => f.homeTeamName && f.awayTeamName);
+
+        if (parsed.length === 0) {
+          alert('Could not detect valid matches with Home Team and Away Team columns. Please check your file headers.');
+          return;
+        }
+
+        setExcelFixturesPreview(parsed);
+      } catch (err: any) {
+        console.error(err);
+        alert('Failed to read spreadsheet: ' + err.message);
+      }
+    };
+
+    reader.readAsBinaryString(file);
+  };
+
+  const handleConfirmExcelImport = async () => {
+    if (excelFixturesPreview.length === 0) return;
+    setIsImportingExcel(true);
+    try {
+      await api.bulkImportFixtures(currentEvent.id, excelFixturesPreview, replaceExistingFixtures);
+      onRefreshFixtures();
+      onRefreshStandings();
+      alert(`Successfully imported ${excelFixturesPreview.length} matches into the tournament schedule!`);
+      setShowExcelModal(false);
+      setExcelFixturesPreview([]);
+      setExcelFileName('');
+    } catch (err: any) {
+      alert(err.message || 'Failed to import fixtures');
+    } finally {
+      setIsImportingExcel(false);
+    }
+  };
 
   // Generate Fixtures automatically
   const handleGenerate = async () => {
@@ -322,6 +473,16 @@ export const FixtureManager: React.FC<FixtureManagerProps> = ({
             >
               <Plus className="w-4 h-4" />
               <span>+ Add Custom Match</span>
+            </button>
+
+            {/* Import from Excel Button */}
+            <button
+              onClick={() => setShowExcelModal(true)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-100 transition-all border border-slate-700 hover:border-emerald-500/50 shadow-md"
+              title="Upload spreadsheet with match schedule (.xlsx, .csv)"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+              <span>Import from Excel</span>
             </button>
 
             {/* Auto Generator Dropdown */}
@@ -1056,6 +1217,186 @@ export const FixtureManager: React.FC<FixtureManagerProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* BULK EXCEL FIXTURES MODAL */}
+      {showExcelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-3xl bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl p-6 max-h-[92vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-5">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-white">Import Fixtures from Excel</h3>
+                  <p className="text-xs text-slate-400">
+                    Upload an .xlsx or .csv spreadsheet containing your tournament match schedule
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowExcelModal(false);
+                  setExcelFixturesPreview([]);
+                  setExcelFileName('');
+                }}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Template Download & File Upload Area */}
+            <div className="space-y-4 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-950 border border-slate-800">
+                <div>
+                  <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span>Need the format? Download sample spreadsheet</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Pre-filled with your registered teams and standard columns (Round, Home Team, Away Team, Date, Time, Venue).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDownloadTemplate}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 shrink-0 transition-all shadow-sm"
+                >
+                  <Download className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Download Template (.xlsx)</span>
+                </button>
+              </div>
+
+              {/* Upload Dropzone */}
+              <div className="relative border-2 border-dashed border-slate-800 hover:border-emerald-500/50 rounded-2xl p-6 text-center transition-all bg-slate-950/60">
+                <input
+                  type="file"
+                  accept=".xlsx, .xls, .csv"
+                  onChange={handleExcelUpload}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="flex flex-col items-center justify-center pointer-events-none">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-emerald-400 mb-3 shadow-inner">
+                    <Upload className="w-5 h-5" />
+                  </div>
+                  <span className="text-sm font-bold text-white mb-1">
+                    {excelFileName ? excelFileName : 'Choose an Excel or CSV file'}
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    Click to browse or drag and drop your schedule file (.xlsx, .xls, .csv)
+                  </span>
+                </div>
+              </div>
+
+              {/* Import Options Toggle */}
+              {excelFixturesPreview.length > 0 && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+                  <span className="font-semibold text-slate-300">Schedule Mode:</span>
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer text-slate-300">
+                      <input
+                        type="radio"
+                        name="importMode"
+                        checked={!replaceExistingFixtures}
+                        onChange={() => setReplaceExistingFixtures(false)}
+                        className="text-emerald-500 focus:ring-0 bg-slate-900 border-slate-700"
+                      />
+                      <span>Append to existing ({fixtures.length}) matches</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-rose-300">
+                      <input
+                        type="radio"
+                        name="importMode"
+                        checked={replaceExistingFixtures}
+                        onChange={() => setReplaceExistingFixtures(true)}
+                        className="text-rose-500 focus:ring-0 bg-slate-900 border-slate-700"
+                      />
+                      <span>Replace current schedule</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Parsed Preview Table */}
+            {excelFixturesPreview.length > 0 && (
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-300 uppercase tracking-wider">
+                    Parsed Matches Preview ({excelFixturesPreview.length})
+                  </span>
+                  <span className="text-[11px] text-emerald-400 font-semibold">
+                    ✓ Ready to Import
+                  </span>
+                </div>
+
+                <div className="max-h-60 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-slate-900 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 border-b border-slate-800">
+                      <tr>
+                        <th className="py-2.5 px-3">#</th>
+                        <th className="py-2.5 px-3">Round</th>
+                        <th className="py-2.5 px-3">Matchup</th>
+                        <th className="py-2.5 px-3">Date & Time</th>
+                        <th className="py-2.5 px-3">Venue</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/80">
+                      {excelFixturesPreview.map((m, idx) => (
+                        <tr key={idx} className="hover:bg-slate-900/50">
+                          <td className="py-2 px-3 text-slate-500 font-mono">{idx + 1}</td>
+                          <td className="py-2 px-3 font-semibold text-slate-300">{m.roundName}</td>
+                          <td className="py-2 px-3 font-bold text-white">
+                            <span className="text-emerald-400">{m.homeTeamName}</span>
+                            <span className="text-slate-500 mx-1.5 font-normal">vs</span>
+                            <span className="text-amber-400">{m.awayTeamName}</span>
+                          </td>
+                          <td className="py-2 px-3 text-slate-400 whitespace-nowrap">
+                            {m.scheduledDate} • {m.scheduledTime}
+                          </td>
+                          <td className="py-2 px-3 text-slate-400 truncate max-w-[150px]">
+                            {m.venueLocation}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowExcelModal(false);
+                  setExcelFixturesPreview([]);
+                  setExcelFileName('');
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmExcelImport}
+                disabled={excelFixturesPreview.length === 0 || isImportingExcel}
+                className="flex items-center gap-2 px-6 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 disabled:opacity-40 transition-all shadow-md shadow-emerald-500/20"
+              >
+                <Check className="w-4 h-4" />
+                <span>
+                  {isImportingExcel
+                    ? 'Importing Matches...'
+                    : `Confirm & Import ${excelFixturesPreview.length > 0 ? `(${excelFixturesPreview.length}) Matches` : ''}`}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       )}

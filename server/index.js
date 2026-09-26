@@ -347,6 +347,74 @@ app.post('/api/fixtures', (req, res) => {
   res.status(201).json(newFixture);
 });
 
+// Bulk Import Fixtures (from Excel/CSV parser)
+app.post('/api/fixtures/bulk', (req, res) => {
+  const db = readDb();
+  const { eventId, fixtures, replaceExisting } = req.body;
+  if (!eventId || !Array.isArray(fixtures)) {
+    return res.status(400).json({ error: 'Invalid payload: eventId and fixtures array required' });
+  }
+
+  const eventTeams = db.teams.filter((t) => t.eventId === eventId);
+
+  if (replaceExisting) {
+    db.fixtures = db.fixtures.filter((f) => f.eventId !== eventId);
+  }
+
+  const added = [];
+  const baseTime = Date.now();
+
+  for (let i = 0; i < fixtures.length; i++) {
+    const f = fixtures[i];
+    const hRaw = String(f.homeTeamName || f.homeTeam || f['Home Team'] || f['Team 1'] || '').trim();
+    const aRaw = String(f.awayTeamName || f.awayTeam || f['Away Team'] || f['Team 2'] || '').trim();
+
+    // Match home & away teams
+    const homeTeam = eventTeams.find(
+      (t) =>
+        t.id === f.homeTeamId ||
+        t.name.toLowerCase() === hRaw.toLowerCase() ||
+        (t.shortCode && t.shortCode.toLowerCase() === hRaw.toLowerCase())
+    );
+    const awayTeam = eventTeams.find(
+      (t) =>
+        t.id === f.awayTeamId ||
+        t.name.toLowerCase() === aRaw.toLowerCase() ||
+        (t.shortCode && t.shortCode.toLowerCase() === aRaw.toLowerCase())
+    );
+
+    const hasHomeScore = f.homeScore !== undefined && f.homeScore !== '' && f.homeScore !== null;
+    const hasAwayScore = f.awayScore !== undefined && f.awayScore !== '' && f.awayScore !== null;
+    const isCompleted = f.status === 'completed' || (hasHomeScore && hasAwayScore);
+
+    const newFixture = {
+      id: `fix_${baseTime}_${i}_${Math.random().toString(36).substr(2, 4)}`,
+      eventId,
+      roundNumber: Number(f.roundNumber || i + 1),
+      roundName: f.roundName || f['Round'] || f['Stage'] || `Match ${i + 1}`,
+      homeTeamId: homeTeam ? homeTeam.id : (f.homeTeamId || `custom_${baseTime}_h${i}`),
+      awayTeamId: awayTeam ? awayTeam.id : (f.awayTeamId || `custom_${baseTime}_a${i}`),
+      homeTeamName: homeTeam ? homeTeam.name : (hRaw || 'Team 1'),
+      awayTeamName: awayTeam ? awayTeam.name : (aRaw || 'Team 2'),
+      scheduledDate: String(f.scheduledDate || f.date || f['Date'] || new Date().toISOString().split('T')[0]).trim(),
+      scheduledTime: String(f.scheduledTime || f.time || f['Time'] || '17:00').trim(),
+      venueLocation: String(f.venueLocation || f.venue || f['Venue'] || 'Main Sports Complex').trim(),
+      status: isCompleted ? 'completed' : (f.status || 'scheduled'),
+      homeScore: hasHomeScore ? Number(f.homeScore) : null,
+      awayScore: hasAwayScore ? Number(f.awayScore) : null,
+      notes: f.notes || f['Notes'] || '',
+      playerOfTheMatch: null,
+      playerStats: [],
+    };
+
+    db.fixtures.push(newFixture);
+    added.push(newFixture);
+  }
+
+  writeDb(db);
+  res.status(201).json({ count: added.length, fixtures: added });
+});
+
 // Automated Fixture Generator
 app.post('/api/fixtures/generate', (req, res) => {
   const db = readDb();

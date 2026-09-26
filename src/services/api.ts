@@ -131,6 +131,23 @@ export const api = {
     if (!res.ok) throw new Error('Failed to delete fixture');
   },
 
+  async bulkImportFixtures(
+    eventId: string,
+    fixtures: any[],
+    replaceExisting: boolean = false
+  ): Promise<{ count: number; fixtures: Fixture[] }> {
+    const res = await fetch(`${BASE_URL}/fixtures/bulk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventId, fixtures, replaceExisting }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to bulk import fixtures');
+    }
+    return res.json();
+  },
+
   // Standings
   async getStandings(eventId: string): Promise<StandingsResponse> {
     const res = await fetch(`${BASE_URL}/standings/${eventId}`);
