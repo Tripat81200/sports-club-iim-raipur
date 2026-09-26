@@ -26,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   activePortal,
   onChangePortal,
   onOpenCreateEvent,
+  onOpenBackupModal,
   liveMatchCount,
   isAdminAuthenticated,
   onAdminLogin,

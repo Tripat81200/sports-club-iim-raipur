@@ -248,4 +248,55 @@ export function App() {
   );
 }
 
-export default App;
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error('UI Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-[#070b12] text-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="text-4xl mb-4">🏆</div>
+          <h2 className="text-xl font-bold mb-2">Sports Club IIM Raipur</h2>
+          <p className="text-slate-400 text-xs max-w-sm mb-6">
+            Something went wrong while displaying this page.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 transition-all"
+          >
+            Reload Page
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+export default function RootApp() {
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
+}
