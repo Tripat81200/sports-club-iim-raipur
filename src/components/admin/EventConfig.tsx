@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
-import { Settings, Trophy, Shield, Calendar, MapPin, Check, Plus, AlertCircle } from 'lucide-react';
+import { Settings, Trophy, Shield, Calendar, MapPin, Check, Plus, AlertCircle, Trash2 } from 'lucide-react';
 import { TournamentEvent, TournamentFormat } from '../../types';
 
 interface EventConfigProps {
   currentEvent: TournamentEvent;
   onUpdateEvent: (updated: Partial<TournamentEvent>) => Promise<void>;
   onCreateNewEvent: (newEvent: Partial<TournamentEvent>) => Promise<void>;
+  onDeleteEvent?: (eventId: string) => Promise<void>;
 }
 
 export const EventConfig: React.FC<EventConfigProps> = ({
   currentEvent,
   onUpdateEvent,
   onCreateNewEvent,
+  onDeleteEvent,
 }) => {
   const [formData, setFormData] = useState<TournamentEvent>({ ...currentEvent });
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
 
@@ -428,16 +431,50 @@ export const EventConfig: React.FC<EventConfigProps> = ({
           </div>
         </div>
 
-        {/* Save Button */}
-        <div className="pt-5 border-t border-slate-800 flex justify-end">
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
-          >
-            <Check className="w-4 h-4" />
-            <span>{isSaving ? 'Saving...' : isCreatingNew ? 'Create Tournament' : 'Save Configuration'}</span>
-          </button>
+        {/* Actions Bar */}
+        <div className="pt-5 border-t border-slate-800 flex items-center justify-between gap-4">
+          {!isCreatingNew && onDeleteEvent && (
+            <button
+              type="button"
+              disabled={isDeleting || isSaving}
+              onClick={async () => {
+                const confirmed = window.confirm(
+                  `Are you sure you want to permanently delete tournament "${currentEvent.name}"?\n\nThis will remove this tournament along with all its teams, players, and match fixtures. This action cannot be undone.`
+                );
+                if (!confirmed) return;
+                setIsDeleting(true);
+                try {
+                  await onDeleteEvent(currentEvent.id);
+                } catch (err) {
+                  console.error(err);
+                  alert('Failed to delete tournament');
+                } finally {
+                  setIsDeleting(false);
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-all disabled:opacity-50"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>{isDeleting ? 'Deleting...' : 'Delete Tournament'}</span>
+            </button>
+          )}
+
+          <div className="flex items-center gap-3 ml-auto">
+            {showSuccess && (
+              <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 animate-in fade-in">
+                <Check className="w-4 h-4" />
+                <span>Configuration saved successfully!</span>
+              </span>
+            )}
+            <button
+              type="submit"
+              disabled={isSaving || isDeleting}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+            >
+              <Check className="w-4 h-4" />
+              <span>{isSaving ? 'Saving...' : isCreatingNew ? 'Create Tournament' : 'Save Configuration'}</span>
+            </button>
+          </div>
         </div>
       </form>
     </div>

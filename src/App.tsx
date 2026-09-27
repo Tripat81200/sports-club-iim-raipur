@@ -144,6 +144,15 @@ export function App() {
     setSelectedEvent(res);
   };
 
+  const handleDeleteEvent = async (eventId: string) => {
+    await api.deleteEvent(eventId);
+    const updatedEvents = await api.getEvents();
+    setEvents(updatedEvents);
+    if (selectedEvent?.id === eventId) {
+      setSelectedEvent(updatedEvents.length > 0 ? updatedEvents[0] : null);
+    }
+  };
+
   const handleAdminLogin = () => {
     setIsAdminAuthenticated(true);
   };
@@ -212,6 +221,7 @@ export function App() {
             onRefreshAll={loadEventData}
             onUpdateEvent={handleUpdateEvent}
             onCreateNewEvent={handleCreateNewEvent}
+            onDeleteEvent={handleDeleteEvent}
           />
         )}
       </main>

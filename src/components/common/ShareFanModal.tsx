@@ -41,8 +41,8 @@ export const ShareFanModal: React.FC<ShareFanModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-      <div className="relative w-full max-w-lg bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl p-6 sm:p-7">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto animate-in fade-in">
+      <div className="relative w-full max-w-lg bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl p-5 sm:p-7 my-auto max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute top-5 right-5 p-2 rounded-full bg-slate-800 text-slate-400 hover:text-white"
@@ -73,7 +73,7 @@ export const ShareFanModal: React.FC<ShareFanModalProps> = ({
         </div>
 
         {/* Link Field */}
-        <div className="space-y-3 mb-5">
+        <div className="space-y-2 mb-4">
           <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
             Protected Fan Link
           </label>
@@ -106,20 +106,9 @@ export const ShareFanModal: React.FC<ShareFanModalProps> = ({
               <span>{copiedBroadcast ? 'Copied!' : 'Copy Text'}</span>
             </button>
           </div>
-          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 whitespace-pre-line font-sans leading-relaxed">
+          <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 whitespace-pre-line font-sans leading-relaxed">
             {announcementMessage}
           </div>
-        </div>
-
-        {/* Campus Wi-Fi Tip */}
-        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-400 space-y-1 mb-5">
-          <div className="flex items-center gap-1.5 font-bold text-slate-300">
-            <Wifi className="w-3.5 h-3.5 text-amber-400" />
-            <span>Campus Wi-Fi / Mobile Phone Access:</span>
-          </div>
-          <p>
-            Any student connected to the same campus Wi-Fi or hostel network can open the portal on their phone by opening your laptop&apos;s IP address (e.g. <code className="text-amber-400 font-mono font-bold">http://&lt;your-ip&gt;:3001/?mode=fan</code>).
-          </p>
         </div>
 
         {/* Actions */}

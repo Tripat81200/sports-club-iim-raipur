@@ -611,8 +611,9 @@ app.get('/api/standings/:eventId', (req, res) => {
 
 // ========================
 // BROADCAST & WHATSAPP GENERATOR API
-// Personalized by Tournament Stage, Rich Campus Hype Fillers, NO POTM, strictly NO em-dashes (—)
-// Optimized length (500-580 chars) to maximize excitement without hitting WhatsApp's "Read More" fold
+// Fully Context-Aware: Computes Prior Match Results, Streaks, Comebacks & Debuts
+// Dynamic Varied Copy across Every Single Fixture and Stage, NO POTM, strictly NO em-dashes (—)
+// Optimized length (340-440 chars) to prevent triggering WhatsApp's "Read More" truncation
 // ========================
 app.get('/api/broadcasts/:type/:fixtureId', (req, res) => {
   const db = readDb();
@@ -625,10 +626,63 @@ app.get('/api/broadcasts/:type/:fixtureId', (req, res) => {
   const awayTeam = db.teams.find((t) => t.id === fixture.awayTeamId) || { name: fixture.awayTeamName || 'Team B', players: [] };
 
   const allEventFixtures = db.fixtures.filter((f) => f.eventId === fixture.eventId);
+  const completedFixtures = allEventFixtures.filter(
+    (f) => f.id !== fixtureId && f.status === 'completed' && f.homeScore !== null && f.awayScore !== null
+  );
+
   const upcomingMatches = allEventFixtures.filter(
     (f) => f.id !== fixtureId && (f.status === 'scheduled' || f.status === 'live')
   );
   const nextMatch = upcomingMatches[0] || null;
+
+  // Calculate team previous history, streaks, and form
+  const getTeamHistory = (teamId) => {
+    const matches = completedFixtures.filter(
+      (f) => f.homeTeamId === teamId || f.awayTeamId === teamId
+    );
+    matches.sort((a, b) => {
+      const dtA = `${a.scheduledDate || ''} ${a.scheduledTime || ''} ${a.roundNumber || 0}`;
+      const dtB = `${b.scheduledDate || ''} ${b.scheduledTime || ''} ${b.roundNumber || 0}`;
+      return dtA.localeCompare(dtB);
+    });
+
+    let streakType = null; // 'W', 'L', 'D'
+    let streakCount = 0;
+    let lastResult = null; // 'W', 'L', 'D'
+
+    for (const m of matches) {
+      const isHome = m.homeTeamId === teamId;
+      const tScore = Number(isHome ? m.homeScore : m.awayScore);
+      const oScore = Number(isHome ? m.awayScore : m.homeScore);
+
+      let res = 'D';
+      if (tScore > oScore) res = 'W';
+      else if (tScore < oScore) res = 'L';
+
+      if (res === streakType) {
+        streakCount++;
+      } else {
+        streakType = res;
+        streakCount = 1;
+      }
+      lastResult = res;
+    }
+
+    return {
+      played: matches.length,
+      lastResult,
+      streakType,
+      streakCount,
+    };
+  };
+
+  const homeHist = getTeamHistory(homeTeam.id);
+  const awayHist = getTeamHistory(awayTeam.id);
+
+  // Deterministic seed from fixture properties to ensure every fixture has its own distinct phrasing
+  const hash = String(fixture.id || fixture.roundNumber || fixture.scheduledTime || '')
+    .split('')
+    .reduce((acc, c) => acc + c.charCodeAt(0), 0);
 
   const roundLower = (fixture.roundName || '').toLowerCase();
   const isFinal = roundLower.includes('final') && !roundLower.includes('semi') && !roundLower.includes('quarter');
@@ -642,60 +696,194 @@ app.get('/api/broadcasts/:type/:fixtureId', (req, res) => {
     const as = fixture.awayScore !== null ? Number(fixture.awayScore) : 0;
     const diff = Math.abs(hs - as);
 
-    // Narrative based on margin & stage
-    let dramaText = '';
+    let dramaHeadline = '';
+    let narrativeDetail = '';
+
     if (hs > as) {
+      // Home team won
       if (isFinal) {
-        dramaText = `🏆 GLORY DECLARED! ${homeTeam.name} emerge victorious ${hs}:${as} to etch their names into campus folklore as champions!`;
+        dramaHeadline = `🏆 CHAMPIONS CROWNED! ${homeTeam.name} defeat ${awayTeam.name} ${hs}:${as} to conquer the tournament!`;
+        narrativeDetail = `A historic victory etched into IIM Raipur sports legacy!`;
       } else if (isSemi) {
-        dramaText = `🔥 TICKET PUNCHED! ${homeTeam.name} take down ${awayTeam.name} ${hs}:${as} in a thrilling clash to march straight into the Grand Final!`;
+        dramaHeadline = `🔥 TICKET TO THE FINAL! ${homeTeam.name} triumph ${hs}:${as} over ${awayTeam.name}!`;
+        narrativeDetail = `They advance to the Grand Finale after an unforgettable semifinal battle!`;
       } else if (isQuarter) {
-        dramaText = `⚡ KNOCKOUT TRIUMPH! ${homeTeam.name} conquer the pressure cook with a gritty ${hs}:${as} win to lock in a Semifinal berth!`;
-      } else if (diff <= 1) {
-        dramaText = `🔥 WHAT A THRILLER! ${homeTeam.name} edge out ${awayTeam.name} ${hs}:${as} after heart-stopping drama down to the final whistle!`;
+        dramaHeadline = `⚡ SEMIFINAL BOUND! ${homeTeam.name} hold nerve for a gritty ${hs}:${as} win!`;
+        narrativeDetail = `Knockout pressure conquered in style to punch their Final Four ticket.`;
       } else {
-        dramaText = `🔥 STUNNING DISPLAY! ${homeTeam.name} power past ${awayTeam.name} with a commanding ${hs}:${as} win to send shockwaves across the table!`;
+        // League match with dynamic streak context
+        if (homeHist.streakType === 'W' && homeHist.streakCount >= 2) {
+          dramaHeadline = `🔥 STREAK EXTENDED! ${homeTeam.name} power to a ${hs}:${as} victory over ${awayTeam.name}!`;
+          narrativeDetail = `Unstoppable momentum! That makes it ${homeHist.streakCount + 1} consecutive wins on the trot.`;
+        } else if (homeHist.lastResult === 'L') {
+          dramaHeadline = `⚡ RESILIENT COMEBACK! ${homeTeam.name} bounce back with a ${hs}:${as} win!`;
+          narrativeDetail = `After a tough setback in their previous match, they answered with sheer grit today.`;
+        } else if (homeHist.played === 0) {
+          dramaHeadline = `🔥 DREAM DEBUT! ${homeTeam.name} open their tournament with a ${hs}:${as} win!`;
+          narrativeDetail = `First match on the pitch and immediate maximum points in the bag.`;
+        } else if (diff <= 1) {
+          const closePhrases = [
+            `🔥 NAIL-BITING THRILLER! ${homeTeam.name} edge out ${awayTeam.name} ${hs}:${as}!`,
+            `⚡ HEART-STOPPING FINISH! ${homeTeam.name} take a razor-thin ${hs}:${as} win!`,
+          ];
+          dramaHeadline = closePhrases[hash % closePhrases.length];
+          narrativeDetail = `Down to the final second, they held their composure under intense pressure.`;
+        } else {
+          const domPhrases = [
+            `🔥 COMMANDING DISPLAY! ${homeTeam.name} defeat ${awayTeam.name} ${hs}:${as}!`,
+            `⚡ STATEMENT VICTORY! ${homeTeam.name} secure all 3 points with a ${hs}:${as} scoreline!`,
+          ];
+          dramaHeadline = domPhrases[hash % domPhrases.length];
+          narrativeDetail = `Dominant rhythm from start to finish to boost their leaderboard standing.`;
+        }
       }
     } else if (as > hs) {
+      // Away team won
       if (isFinal) {
-        dramaText = `🏆 GLORY DECLARED! ${awayTeam.name} seal the championship ${as}:${hs} in a legendary finals masterclass!`;
+        dramaHeadline = `🏆 CHAMPIONS CROWNED! ${awayTeam.name} triumph ${as}:${hs} to lift the trophy!`;
+        narrativeDetail = `A masterclass on the biggest stage to claim ultimate campus glory!`;
       } else if (isSemi) {
-        dramaText = `🔥 TICKET PUNCHED! ${awayTeam.name} topple ${homeTeam.name} ${as}:${hs} to claim their spot in the coveted Championship Final!`;
+        dramaHeadline = `🔥 TICKET TO THE FINAL! ${awayTeam.name} topple ${homeTeam.name} ${as}:${hs}!`;
+        narrativeDetail = `A high-voltage clash punches their ticket into the Championship Final!`;
       } else if (isQuarter) {
-        dramaText = `⚡ KNOCKOUT TRIUMPH! ${awayTeam.name} hold their nerve ${as}:${hs} to advance into the Final Four!`;
-      } else if (diff <= 1) {
-        dramaText = `🔥 NAIL-BITER TO THE END! ${awayTeam.name} snatch victory ${as}:${hs} in a breathtaking back-and-forth contest!`;
+        dramaHeadline = `⚡ SEMIFINAL BOUND! ${awayTeam.name} seal a clutch ${as}:${hs} knockout win!`;
+        narrativeDetail = `Steel nerves in elimination territory send them into the Final Four.`;
       } else {
-        dramaText = `🔥 SENSATIONAL SHOW! ${awayTeam.name} dismantle the opposition ${as}:${hs} in an emphatic statement win!`;
+        // League match with dynamic streak context
+        if (awayHist.streakType === 'W' && awayHist.streakCount >= 2) {
+          dramaHeadline = `🔥 STREAK EXTENDED! ${awayTeam.name} march on with a ${as}:${hs} win!`;
+          narrativeDetail = `Sensational form! Now ${awayHist.streakCount + 1} matches unbeaten as they eye table summit.`;
+        } else if (awayHist.lastResult === 'L') {
+          dramaHeadline = `⚡ BOUNCE-BACK REDEMPTION! ${awayTeam.name} strike back with a ${as}:${hs} win!`;
+          narrativeDetail = `Rebounding in emphatic style after their last defeat with pure determination.`;
+        } else if (awayHist.played === 0) {
+          dramaHeadline = `🔥 SENSATIONAL OPENER! ${awayTeam.name} start strong with a ${as}:${hs} win!`;
+          narrativeDetail = `First appearance of the tournament and an immediate statement on the table.`;
+        } else if (diff <= 1) {
+          const closePhrases = [
+            `🔥 BREATHTAKING FINISH! ${awayTeam.name} snatch a ${as}:${hs} victory!`,
+            `⚡ NAIL-BITER TO THE END! ${awayTeam.name} conquer ${homeTeam.name} ${as}:${hs}!`,
+          ];
+          dramaHeadline = closePhrases[hash % closePhrases.length];
+          narrativeDetail = `Nerves of steel down to the final whistle to take all points!`;
+        } else {
+          const domPhrases = [
+            `🔥 CLINICAL MASTERCLASS! ${awayTeam.name} overpower ${homeTeam.name} ${as}:${hs}!`,
+            `⚡ EMPHATIC STATEMENT! ${awayTeam.name} cruise to a ${as}:${hs} win!`,
+          ];
+          dramaHeadline = domPhrases[hash % domPhrases.length];
+          narrativeDetail = `Flawless execution on the pitch to bag vital points for the standings.`;
+        }
       }
     } else {
-      dramaText = `⚡ RELENTLESS DEADLOCK! An all-out slugfest ends ${hs}:${as} as neither titan yields an inch on the pitch!`;
+      // Draw
+      const drawPhrases = [
+        `⚡ RELENTLESS DEADLOCK! ${homeTeam.name} and ${awayTeam.name} battle to a ${hs}:${as} draw!`,
+        `🔥 PULSATING STALEMATE! An all-out contest finishes level at ${hs}:${as}!`,
+      ];
+      dramaHeadline = drawPhrases[hash % drawPhrases.length];
+      narrativeDetail = `Neither titan gave an inch! Both sides share the spoils in a breathless encounter.`;
     }
 
-    let nextMatchLine = 'Next: Matchday action wraps up for today. Rest up, warriors!';
+    const crowdLines = [
+      `Electric atmosphere under the lights tonight! Big gratitude to the fans for non-stop cheers.`,
+      `Incredible sportsmanship and deafening chants pitchside! Thanks to all who showed up.`,
+      `Campus sports at its finest! Massive appreciation to the crowd for bringing the energy.`,
+      `What a battle under floodlights! The race for the standings is heating up with every game.`,
+    ];
+    const crowdAppreciation = crowdLines[hash % crowdLines.length];
+
+    let nextMatchLine = 'Next: Action wraps up for today. Rest up warriors!';
     if (nextMatch) {
       const nHome = nextMatch.homeTeamName || 'TBD';
       const nAway = nextMatch.awayTeamName || 'TBD';
       const nRound = nextMatch.roundName || 'Next Round';
-      nextMatchLine = `👉 Up Next: ${nHome} vs ${nAway} at ${nextMatch.scheduledTime || 'TBD'} (${nextMatch.venueLocation || 'Ground'}) in ${nRound}. Don't miss a beat!`;
+      nextMatchLine = `👉 Up Next: ${nHome} vs ${nAway} at ${nextMatch.scheduledTime || 'TBD'} (${nextMatch.venueLocation || 'Ground'}). Be there!`;
     }
 
-    // High energy campus hype, NO POTM, NO em-dash, strictly under WhatsApp Read More limit
-    message = `🏆 SPORTS CLUB IIM RAIPUR\nMATCH RESULT: ${event.name}\n\n⚽ ${homeTeam.name} ${hs} : ${as} ${awayTeam.name}\n${dramaText}\n\nThe energy in the stadium was unreal tonight! Massive gratitude to the crowds for bringing deafening cheers.\n\n📅 ${nextMatchLine}\n\nRegards,\nSports Club`;
+    message = `🏆 SPORTS CLUB IIM RAIPUR\nMATCH RESULT: ${event.name}\n\n⚽ ${homeTeam.name} ${hs} : ${as} ${awayTeam.name}\n${dramaHeadline}\n${narrativeDetail}\n\n${crowdAppreciation}\n\n📅 ${nextMatchLine}\n\nRegards,\nSports Club`;
   } else {
-    // PRE-MATCH ANNOUNCEMENT PERSONALIZED BY STAGE
+    // PRE-MATCH ANNOUNCEMENT
     const time = fixture.scheduledTime ? `${fixture.scheduledTime} hrs` : 'Today';
     const venue = fixture.venueLocation || event.venue || 'Sports Complex';
 
+    let headerLine = '';
+    let contextStory = '';
+
     if (isFinal) {
-      message = `🏆 THE GRAND FINALE IS HERE!\nSPORTS CLUB IIM RAIPUR\n\n⚔️ ${homeTeam.name} vs ${awayTeam.name}\n🏟️ ${event.name} * Championship Final\n⏰ Time: ${time} | 📍 Venue: ${venue}\n\nThis is the ultimate pinnacle! Blood, sweat, and campus pride culminate tonight under floodlights. Only one squad lifts the trophy and claims undisputed bragging rights. Don't watch from the sidelines. Pack the arena, bring batch banners, and scream your hearts out!\n\nRegards,\nSports Club`;
+      headerLine = `🏆 THE GRAND FINALE IS HERE!\nSPORTS CLUB IIM RAIPUR\n\n⚔️ ${homeTeam.name} vs ${awayTeam.name}\n🏟️ ${event.name} * Championship Final`;
+      contextStory = `The ultimate pinnacle! Blood, sweat, and campus pride culminate tonight under floodlights. Only one squad lifts the coveted trophy!`;
     } else if (isSemi) {
-      message = `🔥 HIGH-VOLTAGE SEMIFINAL SHOWDOWN!\nSPORTS CLUB IIM RAIPUR\n\n⚔️ ${homeTeam.name} vs ${awayTeam.name}\n🏆 ${event.name} * ${fixture.roundName}\n⏰ Match Time: ${time} | 📍 Venue: ${venue}\n\nThe Final Four is in session! One colossal victory away from the Championship match. Expect ferocious tackles, electric pace, and nerves of pure steel. Ditch your dorms and storm the stadium pitchside to cheer your batch into the finals!\n\nRegards,\nSports Club`;
+      headerLine = `🔥 HIGH-VOLTAGE SEMIFINAL SHOWDOWN!\nSPORTS CLUB IIM RAIPUR\n\n⚔️ ${homeTeam.name} vs ${awayTeam.name}\n🏆 ${event.name} * ${fixture.roundName}`;
+      contextStory = `One win away from the Grand Final! Expect ferocious tackles, electric tempo, and nerves of pure steel.`;
     } else if (isQuarter) {
-      message = `⚡ DO-OR-DIE KNOCKOUT THRILLER!\nSPORTS CLUB IIM RAIPUR\n\n⚔️ ${homeTeam.name} vs ${awayTeam.name}\n🏆 ${event.name} * ${fixture.roundName}\n⏰ Match Time: ${time} | 📍 Venue: ${venue}\n\nWin or go home! Pure elimination madness on the line tonight. Every pass and every strike carries tournament survival. The campus is buzzing and the atmosphere will be electric. Be there to fuel your team across the finish line!\n\nRegards,\nSports Club`;
+      headerLine = `⚡ DO-OR-DIE KNOCKOUT THRILLER!\nSPORTS CLUB IIM RAIPUR\n\n⚔️ ${homeTeam.name} vs ${awayTeam.name}\n🏆 ${event.name} * ${fixture.roundName}`;
+      contextStory = `Win or pack up! Pure elimination intensity on the line tonight. Every pass carries tournament survival.`;
     } else {
-      message = `🔥 COLOSSAL MATCHDAY AT IIM RAIPUR!\nSPORTS CLUB IIM RAIPUR\n\n⚽ ${homeTeam.name} vs ${awayTeam.name}\n🏆 ${event.name} * ${fixture.roundName}\n⏰ Match Time: ${time} | 📍 Venue: ${venue}\n\nMassive league points and table supremacy at stake! Both heavyweight squads are geared up to put on a spectacle. Gather your friends, fill the bleachers, and ignite the stadium with your batch chants!\n\nRegards,\nSports Club`;
+      // League match headers rotating across matches
+      const leagueHeaders = [
+        `🔥 COLOSSAL MATCHDAY AT IIM RAIPUR!`,
+        `⚡ HIGH-STAKES CLASH UNDER FLOODLIGHTS!`,
+        `⚽ INTENSE TOURNAMENT ACTION TODAY!`,
+        `🔥 BATTLE FOR TABLE SUPREMACY!`,
+        `🏆 MATCHDAY SHOWDOWN AT IIM RAIPUR!`,
+      ];
+      headerLine = `${leagueHeaders[hash % leagueHeaders.length]}\nSPORTS CLUB IIM RAIPUR\n\n⚽ ${homeTeam.name} vs ${awayTeam.name}\n🏆 ${event.name} * ${fixture.roundName || 'League Match'}`;
+
+      // Dynamic Narrative based on team history and streaks
+      if (homeHist.played === 0 && awayHist.played === 0) {
+        const debutStories = [
+          `Both squads make their tournament debut today! Zero points on the board and everything to prove as the campaign kicks off.`,
+          `Opening fixture for both contenders! High adrenaline and clean slates as they battle for an immediate statement win.`,
+        ];
+        contextStory = debutStories[hash % debutStories.length];
+      } else if (homeHist.streakType === 'W' && homeHist.streakCount >= 2 && awayHist.streakType === 'W' && awayHist.streakCount >= 2) {
+        contextStory = `Battle of the unbeatens! ${homeTeam.name} (${homeHist.streakCount} straight wins) clash with ${awayTeam.name} (${awayHist.streakCount} straight wins). Whose streak survives?`;
+      } else if (homeHist.lastResult === 'W' && awayHist.lastResult === 'W') {
+        const winWinStories = [
+          `Both contenders enter on a high with winning momentum! Who keeps their victorious rhythm alive tonight?`,
+          `Two in-form squads meet head-on. Expect maximum intensity with neither side willing to drop points.`,
+        ];
+        contextStory = winWinStories[hash % winWinStories.length];
+      } else if (homeHist.lastResult === 'W' && awayHist.lastResult === 'L') {
+        const winLossStories = [
+          `${homeTeam.name} enter riding winning form, while ${awayTeam.name} are determined to bounce back stronger and claim redemption!`,
+          `Can ${homeTeam.name} maintain their winning streak, or will ${awayTeam.name} mount a fierce comeback?`,
+        ];
+        contextStory = winLossStories[hash % winLossStories.length];
+      } else if (homeHist.lastResult === 'L' && awayHist.lastResult === 'W') {
+        const lossWinStories = [
+          `${awayTeam.name} arrive with winning momentum, but a hungry ${homeTeam.name} will fight tooth and nail for redemption!`,
+          `Huge test of resilience: ${homeTeam.name} fight to get back in the win column against an in-form ${awayTeam.name}.`,
+        ];
+        contextStory = lossWinStories[hash % lossWinStories.length];
+      } else if (homeHist.lastResult === 'L' && awayHist.lastResult === 'L') {
+        const lossLossStories = [
+          `Redemption is the only mission! Both teams are hungry to rebound with fury after previous setbacks.`,
+          `A pivotal bounce-back duel! Neither squad can afford another slip on the points table.`,
+        ];
+        contextStory = lossLossStories[hash % lossLossStories.length];
+      } else {
+        const generalStories = [
+          `Crucial league points and table position on the line! Every pass and challenge carries massive weight.`,
+          `Tactical showdown awaits as both squads bring their absolute best to the turf for campus bragging rights.`,
+          `The race for the playoffs intensifies with this heavyweight clash under the lights!`,
+        ];
+        contextStory = generalStories[hash % generalStories.length];
+      }
     }
+
+    const hypeClosers = [
+      `Pack the touchline, bring your batch banners, and scream your hearts out!`,
+      `Ditch the dorms, fill the bleachers, and ignite the stadium with deafening chants!`,
+      `The pitch is primed and floodlights are on. Rally your batch and turn up the volume!`,
+      `Expect fierce tackles, electric pace, and unyielding drama right to the final whistle!`,
+      `Bragging rights on the line. Make sure your batch chant echoes across campus!`,
+      `Nothing beats campus sports under lights. Be there to fuel your squad to victory!`,
+    ];
+    const hypeCloser = hypeClosers[(hash + 2) % hypeClosers.length];
+
+    message = `${headerLine}\n⏰ Match Time: ${time} | 📍 Venue: ${venue}\n\n${contextStory}\n\n${hypeCloser}\n\nRegards,\nSports Club`;
   }
 
   const encodedText = encodeURIComponent(message);

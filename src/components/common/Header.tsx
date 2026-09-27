@@ -161,16 +161,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
 
-            {/* Fan Mode Discreet Committee Login */}
-            {isFanOnlyMode && !isAdminAuthenticated && (
-              <button
-                onClick={() => setShowPinModal(true)}
-                className="p-2 text-slate-500 hover:text-slate-300 rounded-xl hover:bg-slate-900"
-                title="Committee Access"
-              >
-                <Lock className="w-4 h-4" />
-              </button>
-            )}
+
           </div>
         </div>
 

@@ -155,12 +155,15 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
 
         {/* Scoring Rules Pill (Shown on Standings tab) */}
         {activeTab === 'standings' && (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-300 font-semibold shrink-0">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-300 font-semibold shrink-0 flex-wrap">
             <Info className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <span>
               Win: <b className="text-emerald-400">{scoringRules.pointsWin} pts</b> • Draw: <b className="text-amber-400">{scoringRules.pointsDraw} pt</b> • Loss: <b className="text-slate-400">{scoringRules.pointsLoss} pt</b>
               {scoringRules.bonusPoints > 0 && (
                 <> • Bonus: <b className="text-cyan-400">+{scoringRules.bonusPoints} pt</b> (diff &ge; {scoringRules.bonusThreshold})</>
+              )}
+              {sport.toLowerCase().includes('foot') && (
+                <> • <span className="text-emerald-400 font-bold">Tie-breaker: Goal Difference (GD = GF - GA)</span></>
               )}
             </span>
           </div>
@@ -302,12 +305,17 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
       </div>
 
       {/* Qualification note */}
-      <div className="p-3.5 bg-slate-950/50 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
-        <span className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/40 border border-emerald-500" />
-          Ranks 1 to 4 advance to Playoffs / Semifinals
+      <div className="p-3.5 bg-slate-950/50 border-t border-slate-800/80 text-[11px] text-slate-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <span className="flex items-center gap-2 flex-wrap">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/40 border border-emerald-500 shrink-0" />
+          <span>Ranks 1 to 4 advance to Playoffs / Semifinals</span>
+          {sport.toLowerCase().includes('foot') && (
+            <span className="text-slate-400">
+              • Ranking priority: <b className="text-emerald-400">PTS</b> &gt; <b className="text-amber-400">GD</b> (Goals Scored - Goals Conceded) &gt; <b className="text-slate-300">GF</b>
+            </span>
+          )}
         </span>
-        <span className="text-slate-500">Tap any team to view full squad & managers</span>
+        <span className="text-slate-500 shrink-0">Tap any team to view full squad & managers</span>
       </div>
       </>
       ) : (

@@ -15,6 +15,7 @@ interface AdminPortalProps {
   onRefreshAll: () => void;
   onUpdateEvent: (updated: Partial<TournamentEvent>) => Promise<void>;
   onCreateNewEvent: (newEvent: Partial<TournamentEvent>) => Promise<void>;
+  onDeleteEvent?: (eventId: string) => Promise<void>;
 }
 
 export const AdminPortal: React.FC<AdminPortalProps> = ({
@@ -26,6 +27,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onRefreshAll,
   onUpdateEvent,
   onCreateNewEvent,
+  onDeleteEvent,
 }) => {
   const [adminTab, setAdminTab] = useState<'config' | 'rosters' | 'fixtures' | 'broadcast'>('fixtures');
   const [selectedBroadcastFixtureId, setSelectedBroadcastFixtureId] = useState<string | undefined>();
@@ -107,6 +109,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           currentEvent={currentEvent}
           onUpdateEvent={onUpdateEvent}
           onCreateNewEvent={onCreateNewEvent}
+          onDeleteEvent={onDeleteEvent}
         />
       )}
 
