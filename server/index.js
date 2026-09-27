@@ -626,32 +626,72 @@ app.get('/api/broadcasts/:type/:fixtureId', (req, res) => {
   const awayTeam = db.teams.find((t) => t.id === fixture.awayTeamId) || { name: fixture.awayTeamName || 'Team B', players: [] };
 
   const allEventFixtures = db.fixtures.filter((f) => f.eventId === fixture.eventId);
-  const completedFixtures = allEventFixtures.filter(
-    (f) => f.id !== fixtureId && f.status === 'completed' && f.homeScore !== null && f.awayScore !== null
-  );
 
-  const upcomingMatches = allEventFixtures.filter(
-    (f) => f.id !== fixtureId && (f.status === 'scheduled' || f.status === 'live')
-  );
-  const nextMatch = upcomingMatches[0] || null;
+  // Chronological comparator based on date, time, and round
+  const getFixtureDateTime = (f) => {
+    const d = String(f.scheduledDate || '1970-01-01').trim();
+    let t = String(f.scheduledTime || '00:00').trim();
+    if (t.length === 4 && t.indexOf(':') === 1) t = '0' + t;
+    return `${d} ${t}`;
+  };
 
-  // Calculate team previous history, streaks, and form
-  const getTeamHistory = (teamId) => {
-    const matches = completedFixtures.filter(
-      (f) => f.homeTeamId === teamId || f.awayTeamId === teamId
-    );
-    matches.sort((a, b) => {
-      const dtA = `${a.scheduledDate || ''} ${a.scheduledTime || ''} ${a.roundNumber || 0}`;
-      const dtB = `${b.scheduledDate || ''} ${b.scheduledTime || ''} ${b.roundNumber || 0}`;
-      return dtA.localeCompare(dtB);
-    });
+  const compareFixturesChronological = (a, b) => {
+    const dtA = getFixtureDateTime(a);
+    const dtB = getFixtureDateTime(b);
+    if (dtA !== dtB) return dtA.localeCompare(dtB);
+    const rA = Number(a.roundNumber || 0);
+    const rB = Number(b.roundNumber || 0);
+    if (rA !== rB) return rA - rB;
+    return String(a.id).localeCompare(String(b.id));
+  };
+
+  // Robust team matcher across IDs, team names, and short codes
+  const isTeamInFixture = (f, team) => {
+    if (!team) return false;
+    const tId = String(team.id || '').trim().toLowerCase();
+    const tName = String(team.name || '').trim().toLowerCase();
+    const tCode = String(team.shortCode || '').trim().toLowerCase();
+
+    const fHomeId = String(f.homeTeamId || '').trim().toLowerCase();
+    const fAwayId = String(f.awayTeamId || '').trim().toLowerCase();
+    const fHomeName = String(f.homeTeamName || '').trim().toLowerCase();
+    const fAwayName = String(f.awayTeamName || '').trim().toLowerCase();
+
+    const isHome = (tId && fHomeId === tId) || (tName && fHomeName === tName) || (tCode && fHomeName === tCode);
+    const isAway = (tId && fAwayId === tId) || (tName && fAwayName === tName) || (tCode && fAwayName === tCode);
+
+    if (isHome) return 'home';
+    if (isAway) return 'away';
+    return null;
+  };
+
+  // Only matches that were scheduled and completed STRICTLY BEFORE this fixture in date and time
+  const priorCompletedFixtures = allEventFixtures.filter((f) => {
+    if (f.id === fixture.id) return false;
+    if (f.status !== 'completed' || f.homeScore === null || f.awayScore === null) return false;
+    return compareFixturesChronological(f, fixture) < 0;
+  });
+
+  // Calculate team previous history, streaks, and form strictly before this match
+  const getTeamHistory = (team) => {
+    if (!team) return { played: 0, lastResult: null, streakType: null, streakCount: 0 };
+
+    const matches = priorCompletedFixtures
+      .map((f) => {
+        const side = isTeamInFixture(f, team);
+        return side ? { fixture: f, side } : null;
+      })
+      .filter(Boolean);
+
+    matches.sort((a, b) => compareFixturesChronological(a.fixture, b.fixture));
 
     let streakType = null; // 'W', 'L', 'D'
     let streakCount = 0;
     let lastResult = null; // 'W', 'L', 'D'
 
-    for (const m of matches) {
-      const isHome = m.homeTeamId === teamId;
+    for (const item of matches) {
+      const { fixture: m, side } = item;
+      const isHome = side === 'home';
       const tScore = Number(isHome ? m.homeScore : m.awayScore);
       const oScore = Number(isHome ? m.awayScore : m.homeScore);
 
@@ -676,8 +716,8 @@ app.get('/api/broadcasts/:type/:fixtureId', (req, res) => {
     };
   };
 
-  const homeHist = getTeamHistory(homeTeam.id);
-  const awayHist = getTeamHistory(awayTeam.id);
+  const homeHist = getTeamHistory(homeTeam);
+  const awayHist = getTeamHistory(awayTeam);
 
   // Deterministic seed from fixture properties to ensure every fixture has its own distinct phrasing
   const hash = String(fixture.id || fixture.roundNumber || fixture.scheduledTime || '')
@@ -688,6 +728,15 @@ app.get('/api/broadcasts/:type/:fixtureId', (req, res) => {
   const isFinal = roundLower.includes('final') && !roundLower.includes('semi') && !roundLower.includes('quarter');
   const isSemi = roundLower.includes('semi');
   const isQuarter = roundLower.includes('quarter') || roundLower.includes('eliminator');
+
+  // Next match strictly AFTER this fixture in chronological schedule
+  const upcomingMatches = allEventFixtures.filter((f) => {
+    if (f.id === fixture.id) return false;
+    if (f.status !== 'scheduled' && f.status !== 'live') return false;
+    return compareFixturesChronological(f, fixture) > 0;
+  });
+  upcomingMatches.sort(compareFixturesChronological);
+  const nextMatch = upcomingMatches[0] || null;
 
   let message = '';
 
@@ -712,15 +761,15 @@ app.get('/api/broadcasts/:type/:fixtureId', (req, res) => {
         narrativeDetail = `Knockout pressure conquered in style to punch their Final Four ticket.`;
       } else {
         // League match with dynamic streak context
-        if (homeHist.streakType === 'W' && homeHist.streakCount >= 2) {
-          dramaHeadline = `🔥 STREAK EXTENDED! ${homeTeam.name} power to a ${hs}:${as} victory over ${awayTeam.name}!`;
+        if (homeHist.played === 0) {
+          dramaHeadline = `🔥 DREAM OPENER! ${homeTeam.name} kick off their tournament with a ${hs}:${as} victory!`;
+          narrativeDetail = `First match on the pitch and an immediate statement with 3 points on the board.`;
+        } else if (homeHist.streakType === 'W' && homeHist.streakCount >= 1) {
+          dramaHeadline = `🔥 STREAK EXTENDED! ${homeTeam.name} power to a ${hs}:${as} win over ${awayTeam.name}!`;
           narrativeDetail = `Unstoppable momentum! That makes it ${homeHist.streakCount + 1} consecutive wins on the trot.`;
         } else if (homeHist.lastResult === 'L') {
-          dramaHeadline = `⚡ RESILIENT COMEBACK! ${homeTeam.name} bounce back with a ${hs}:${as} win!`;
-          narrativeDetail = `After a tough setback in their previous match, they answered with sheer grit today.`;
-        } else if (homeHist.played === 0) {
-          dramaHeadline = `🔥 DREAM DEBUT! ${homeTeam.name} open their tournament with a ${hs}:${as} win!`;
-          narrativeDetail = `First match on the pitch and immediate maximum points in the bag.`;
+          dramaHeadline = `⚡ RESILIENT COMEBACK! ${homeTeam.name} bounce back with a gritty ${hs}:${as} win!`;
+          narrativeDetail = `After a setback in their previous match, they answered with sheer grit and heart today.`;
         } else if (diff <= 1) {
           const closePhrases = [
             `🔥 NAIL-BITING THRILLER! ${homeTeam.name} edge out ${awayTeam.name} ${hs}:${as}!`,
@@ -750,15 +799,15 @@ app.get('/api/broadcasts/:type/:fixtureId', (req, res) => {
         narrativeDetail = `Steel nerves in elimination territory send them into the Final Four.`;
       } else {
         // League match with dynamic streak context
-        if (awayHist.streakType === 'W' && awayHist.streakCount >= 2) {
+        if (awayHist.played === 0) {
+          dramaHeadline = `🔥 SENSATIONAL OPENER! ${awayTeam.name} start their campaign with a ${as}:${hs} win!`;
+          narrativeDetail = `First appearance of the tournament and an immediate statement on the table.`;
+        } else if (awayHist.streakType === 'W' && awayHist.streakCount >= 1) {
           dramaHeadline = `🔥 STREAK EXTENDED! ${awayTeam.name} march on with a ${as}:${hs} win!`;
           narrativeDetail = `Sensational form! Now ${awayHist.streakCount + 1} matches unbeaten as they eye table summit.`;
         } else if (awayHist.lastResult === 'L') {
           dramaHeadline = `⚡ BOUNCE-BACK REDEMPTION! ${awayTeam.name} strike back with a ${as}:${hs} win!`;
           narrativeDetail = `Rebounding in emphatic style after their last defeat with pure determination.`;
-        } else if (awayHist.played === 0) {
-          dramaHeadline = `🔥 SENSATIONAL OPENER! ${awayTeam.name} start strong with a ${as}:${hs} win!`;
-          narrativeDetail = `First appearance of the tournament and an immediate statement on the table.`;
         } else if (diff <= 1) {
           const closePhrases = [
             `🔥 BREATHTAKING FINISH! ${awayTeam.name} snatch a ${as}:${hs} victory!`,
@@ -777,12 +826,17 @@ app.get('/api/broadcasts/:type/:fixtureId', (req, res) => {
       }
     } else {
       // Draw
-      const drawPhrases = [
-        `⚡ RELENTLESS DEADLOCK! ${homeTeam.name} and ${awayTeam.name} battle to a ${hs}:${as} draw!`,
-        `🔥 PULSATING STALEMATE! An all-out contest finishes level at ${hs}:${as}!`,
-      ];
-      dramaHeadline = drawPhrases[hash % drawPhrases.length];
-      narrativeDetail = `Neither titan gave an inch! Both sides share the spoils in a breathless encounter.`;
+      if (homeHist.played === 0 && awayHist.played === 0) {
+        dramaHeadline = `⚡ STALEMATE ON DEBUT! A thrilling contest finishes level at ${hs}:${as}!`;
+        narrativeDetail = `Both teams open their tournament account with a hard-earned point on the board.`;
+      } else {
+        const drawPhrases = [
+          `⚡ RELENTLESS DEADLOCK! ${homeTeam.name} and ${awayTeam.name} battle to a ${hs}:${as} draw!`,
+          `🔥 PULSATING STALEMATE! An all-out contest finishes level at ${hs}:${as}!`,
+        ];
+        dramaHeadline = drawPhrases[hash % drawPhrases.length];
+        narrativeDetail = `Neither titan gave an inch! Both sides share the spoils in a breathless encounter.`;
+      }
     }
 
     const crowdLines = [
@@ -830,46 +884,69 @@ app.get('/api/broadcasts/:type/:fixtureId', (req, res) => {
       ];
       headerLine = `${leagueHeaders[hash % leagueHeaders.length]}\nSPORTS CLUB IIM RAIPUR\n\n⚽ ${homeTeam.name} vs ${awayTeam.name}\n🏆 ${event.name} * ${fixture.roundName || 'League Match'}`;
 
-      // Dynamic Narrative based on team history and streaks
+      // Dynamic Narrative based strictly on prior completed matches before this fixture:
       if (homeHist.played === 0 && awayHist.played === 0) {
+        // CASE 1: Both teams are playing their very first match of the tournament!
         const debutStories = [
-          `Both squads make their tournament debut today! Zero points on the board and everything to prove as the campaign kicks off.`,
-          `Opening fixture for both contenders! High adrenaline and clean slates as they battle for an immediate statement win.`,
+          `Both squads make their tournament debut today! Zero matches behind them and everything to prove as their campaign kicks off.`,
+          `Campaign opener for both contenders! High adrenaline and clean slates as they battle for an immediate statement win on day one.`,
+          `Tournament debut for both sides! Fresh legs, fierce ambitions, and the entire campus watching to see who takes first blood.`,
         ];
         contextStory = debutStories[hash % debutStories.length];
-      } else if (homeHist.streakType === 'W' && homeHist.streakCount >= 2 && awayHist.streakType === 'W' && awayHist.streakCount >= 2) {
-        contextStory = `Battle of the unbeatens! ${homeTeam.name} (${homeHist.streakCount} straight wins) clash with ${awayTeam.name} (${awayHist.streakCount} straight wins). Whose streak survives?`;
-      } else if (homeHist.lastResult === 'W' && awayHist.lastResult === 'W') {
-        const winWinStories = [
-          `Both contenders enter on a high with winning momentum! Who keeps their victorious rhythm alive tonight?`,
-          `Two in-form squads meet head-on. Expect maximum intensity with neither side willing to drop points.`,
-        ];
-        contextStory = winWinStories[hash % winWinStories.length];
-      } else if (homeHist.lastResult === 'W' && awayHist.lastResult === 'L') {
-        const winLossStories = [
-          `${homeTeam.name} enter riding winning form, while ${awayTeam.name} are determined to bounce back stronger and claim redemption!`,
-          `Can ${homeTeam.name} maintain their winning streak, or will ${awayTeam.name} mount a fierce comeback?`,
-        ];
-        contextStory = winLossStories[hash % winLossStories.length];
-      } else if (homeHist.lastResult === 'L' && awayHist.lastResult === 'W') {
-        const lossWinStories = [
-          `${awayTeam.name} arrive with winning momentum, but a hungry ${homeTeam.name} will fight tooth and nail for redemption!`,
-          `Huge test of resilience: ${homeTeam.name} fight to get back in the win column against an in-form ${awayTeam.name}.`,
-        ];
-        contextStory = lossWinStories[hash % lossWinStories.length];
-      } else if (homeHist.lastResult === 'L' && awayHist.lastResult === 'L') {
-        const lossLossStories = [
-          `Redemption is the only mission! Both teams are hungry to rebound with fury after previous setbacks.`,
-          `A pivotal bounce-back duel! Neither squad can afford another slip on the points table.`,
-        ];
-        contextStory = lossLossStories[hash % lossLossStories.length];
+      } else if (homeHist.played === 0 && awayHist.played > 0) {
+        // CASE 2: Home is playing its first match, Away has played prior matches!
+        if (awayHist.lastResult === 'W') {
+          contextStory = `${homeTeam.name} kick off their campaign today against an in-form ${awayTeam.name} squad riding high on winning form!`;
+        } else if (awayHist.lastResult === 'L') {
+          contextStory = `${homeTeam.name} take the pitch for their tournament debut, while ${awayTeam.name} look to rebound after a tough previous match!`;
+        } else {
+          contextStory = `Tournament debut for ${homeTeam.name} as they face a battle-tested ${awayTeam.name} side in a high-intensity duel!`;
+        }
+      } else if (homeHist.played > 0 && awayHist.played === 0) {
+        // CASE 3: Away is playing its first match, Home has played prior matches!
+        if (homeHist.lastResult === 'W') {
+          contextStory = `${homeTeam.name} enter carrying winning momentum, but debutants ${awayTeam.name} will be hungry to make an immediate impact!`;
+        } else if (homeHist.lastResult === 'L') {
+          contextStory = `${homeTeam.name} are determined to bounce back after a previous setback, while ${awayTeam.name} begin their campaign with fresh energy!`;
+        } else {
+          contextStory = `${homeTeam.name} look to build on their previous match as ${awayTeam.name} step onto the turf for their tournament debut!`;
+        }
       } else {
-        const generalStories = [
-          `Crucial league points and table position on the line! Every pass and challenge carries massive weight.`,
-          `Tactical showdown awaits as both squads bring their absolute best to the turf for campus bragging rights.`,
-          `The race for the playoffs intensifies with this heavyweight clash under the lights!`,
-        ];
-        contextStory = generalStories[hash % generalStories.length];
+        // CASE 4: Both teams have played prior matches before this fixture!
+        if (homeHist.streakType === 'W' && homeHist.streakCount >= 2 && awayHist.streakType === 'W' && awayHist.streakCount >= 2) {
+          contextStory = `Battle of the unbeatens! ${homeTeam.name} (${homeHist.streakCount} straight wins) clash with ${awayTeam.name} (${awayHist.streakCount} straight wins). Whose streak survives?`;
+        } else if (homeHist.lastResult === 'W' && awayHist.lastResult === 'W') {
+          const winWinStories = [
+            `Both contenders enter on a high with winning momentum! Who keeps their victorious rhythm alive tonight?`,
+            `Two in-form squads meet head-on. Expect maximum intensity with neither side willing to drop points.`,
+          ];
+          contextStory = winWinStories[hash % winWinStories.length];
+        } else if (homeHist.lastResult === 'W' && awayHist.lastResult === 'L') {
+          const winLossStories = [
+            `${homeTeam.name} enter riding winning form, while ${awayTeam.name} are determined to bounce back stronger and claim redemption!`,
+            `Can ${homeTeam.name} maintain their winning run, or will ${awayTeam.name} mount a fierce comeback?`,
+          ];
+          contextStory = winLossStories[hash % winLossStories.length];
+        } else if (homeHist.lastResult === 'L' && awayHist.lastResult === 'W') {
+          const lossWinStories = [
+            `${awayTeam.name} arrive with winning momentum, but a hungry ${homeTeam.name} will fight tooth and nail for redemption!`,
+            `Huge test of resilience: ${homeTeam.name} fight to get back in the win column against an in-form ${awayTeam.name}.`,
+          ];
+          contextStory = lossWinStories[hash % lossWinStories.length];
+        } else if (homeHist.lastResult === 'L' && awayHist.lastResult === 'L') {
+          const lossLossStories = [
+            `Redemption is the only mission! Both teams are hungry to rebound with fury after previous setbacks.`,
+            `A pivotal bounce-back duel! Neither squad can afford another slip on the points table.`,
+          ];
+          contextStory = lossLossStories[hash % lossLossStories.length];
+        } else {
+          const generalStories = [
+            `Crucial league points and table position on the line! Every pass and challenge carries massive weight.`,
+            `Tactical showdown awaits as both squads bring their absolute best to the turf for campus bragging rights.`,
+            `The race for the playoffs intensifies with this heavyweight clash under the lights!`,
+          ];
+          contextStory = generalStories[hash % generalStories.length];
+        }
       }
     }
 
