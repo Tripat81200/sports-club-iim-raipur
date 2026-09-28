@@ -45,7 +45,8 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#080c14]/90 backdrop-blur-md border-b border-slate-800/80">
+    <>
+      <header className="sticky top-0 z-40 bg-[#080c14]/90 backdrop-blur-md border-b border-slate-800/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo and Brand Title */}
@@ -187,23 +188,24 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
       </div>
-
-      {/* Modals */}
-      <AdminPinModal
-        isOpen={showPinModal}
-        onClose={() => setShowPinModal(false)}
-        onSuccess={() => {
-          setShowPinModal(false);
-          onAdminLogin();
-          onChangePortal('admin');
-        }}
-      />
-
-      <ShareFanModal
-        isOpen={showShareModal}
-        onClose={() => setShowShareModal(false)}
-        eventName={selectedEvent?.name || 'Tournament'}
-      />
     </header>
-  );
+
+    {/* Modals rendered outside header to escape sticky containing block */}
+    <AdminPinModal
+      isOpen={showPinModal}
+      onClose={() => setShowPinModal(false)}
+      onSuccess={() => {
+        setShowPinModal(false);
+        onAdminLogin();
+        onChangePortal('admin');
+      }}
+    />
+
+    <ShareFanModal
+      isOpen={showShareModal}
+      onClose={() => setShowShareModal(false)}
+      eventName={selectedEvent?.name || 'Tournament'}
+    />
+  </>
+);
 };

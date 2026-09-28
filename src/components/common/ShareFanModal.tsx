@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Share2, Copy, Check, ExternalLink, X, Smartphone, Wifi, Shield } from 'lucide-react';
 
 interface ShareFanModalProps {
@@ -40,8 +41,8 @@ export const ShareFanModal: React.FC<ShareFanModalProps> = ({
     window.open(url, '_blank');
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto animate-in fade-in">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto animate-in fade-in">
       <div className="relative w-full max-w-lg bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl p-5 sm:p-7 my-auto max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
@@ -130,4 +131,6 @@ export const ShareFanModal: React.FC<ShareFanModalProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 };
