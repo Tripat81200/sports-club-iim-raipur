@@ -495,8 +495,13 @@ app.delete('/api/fixtures/event/:eventId', (req, res) => {
 // ========================
 // Helper to compute leaderboard standings
 function computeStandings(event, teams, fixtures) {
-  const rules = event.scoringRules || { pointsWin: 3, pointsDraw: 1, pointsLoss: 0, bonusThreshold: 3, bonusPoints: 0 };
-  const completedFixtures = fixtures.filter((f) => f.status === 'completed');
+  const rules = event?.scoringRules || { pointsWin: 3, pointsDraw: 1, pointsLoss: 0, bonusThreshold: 3, bonusPoints: 0, penaltyPoints: 0 };
+  const completedFixtures = fixtures.filter(
+    (f) =>
+      f.status === 'completed' &&
+      !f.isPlayoff &&
+      !String(f.roundName || '').toLowerCase().includes('final')
+  );
 
   const table = {};
   for (const t of teams) {

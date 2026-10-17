@@ -218,9 +218,9 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
             ) : (
               standings.map((row) => {
                 const teamData = teams.find((t) => t.id === row.teamId);
-                const isChampion = isCompleted && (row.rank === 1 || (event?.winnerTeamId ? row.teamId === event.winnerTeamId : false));
-                const isRunnerUp = isCompleted && (row.rank === 2 || (event?.runnerUpTeamId ? row.teamId === event.runnerUpTeamId : false));
-                const isThirdPlace = isCompleted && (row.rank === 3 || (event?.secondRunnerUpTeamId ? row.teamId === event.secondRunnerUpTeamId : false));
+                const isChampion = isCompleted && (event?.winnerTeamId ? row.teamId === event.winnerTeamId : row.rank === 1);
+                const isRunnerUp = isCompleted && (event?.runnerUpTeamId ? row.teamId === event.runnerUpTeamId : row.rank === 2);
+                const isThirdPlace = isCompleted && (event?.secondRunnerUpTeamId ? row.teamId === event.secondRunnerUpTeamId : row.rank === 3);
                 const isTopTeam = row.rank === 1;
 
                 return (

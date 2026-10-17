@@ -7,7 +7,7 @@
       "startDate": "2026-09-25",
       "endDate": "2026-09-27",
       "venue": "IIM Raipur Basketball Court",
-      "format": "round_robin",
+      "format": "league_playoffs",
       "scoringRules": {
         "pointsWin": 3,
         "pointsDraw": 1,
@@ -19,7 +19,38 @@
       "teamCapacity": {
         "min": 7,
         "max": 15
-      }
+      },
+      "status": "completed",
+      "winnerTeamId": "team_1790457780789_smr19",
+      "winnerTeamName": "SHOURYANGHA FC",
+      "winnerColor": "#3b82f6",
+      "runnerUpTeamId": "team_1790457780789_ltz37",
+      "runnerUpTeamName": "CHAOS UNITED FC",
+      "runnerUpColor": "#f97316",
+      "secondRunnerUpTeamId": "team_1790457780789_rhsdg",
+      "secondRunnerUpTeamName": "SHARINGAN STRIKERS",
+      "secondRunnerUpColor": "#3b82f6",
+      "topScorerPlayerName": "SIRIL",
+      "topScorerTeamName": "SHOURYANGHA FC",
+      "topScorerGoals": 7,
+      "mvpPlayerName": "SIRIL",
+      "mvpTeamName": "SHOURYANGHA FC",
+      "completedAt": "2026-09-29T23:00:00.000Z",
+      "concludingNotes": "Congratulations to SHOURYANGHA FC on winning the Futsal Premier League 2026 Championship! Commiserations to CHAOS UNITED FC on an outstanding tournament campaign, and kudos to all 5 clubs and managers.",
+      "customAwards": [
+        {
+          "id": "awd_1",
+          "title": "Golden Glove • Best Goalkeeper",
+          "recipient": "SHOURYANGHA FC DEFENCE",
+          "team": "SHOURYANGHA FC"
+        },
+        {
+          "id": "awd_2",
+          "title": "Fair Play Award",
+          "recipient": "SHARINGAN STRIKERS",
+          "team": "SHARINGAN STRIKERS"
+        }
+      ]
     },
     {
       "id": "evt_chakravyuh_2026",
@@ -802,12 +833,34 @@
       "scheduledDate": "2026-09-28",
       "scheduledTime": "21:00",
       "venueLocation": "Basketball Court",
-      "status": "scheduled",
-      "homeScore": null,
-      "awayScore": null,
+      "status": "completed",
+      "homeScore": 2,
+      "awayScore": 1,
       "notes": "",
       "playerOfTheMatch": null,
-      "playerStats": []
+      "playerStats": [
+        {
+          "playerId": "p_1790457778944_18",
+          "playerName": "RIYAS BABU K K",
+          "teamId": "team_1790457780789_ltz37",
+          "teamName": "CHAOS UNITED FC",
+          "goals": 1
+        },
+        {
+          "playerId": "p_1790457778944_19",
+          "playerName": "RISHIKESH K",
+          "teamId": "team_1790457780789_ltz37",
+          "teamName": "CHAOS UNITED FC",
+          "goals": 1
+        },
+        {
+          "playerId": "p_1790457778944_27",
+          "playerName": "BHUSHAN SINGH",
+          "teamId": "team_1790457780789_qs6ry",
+          "teamName": "AKHADA CAPITALS FC",
+          "goals": 1
+        }
+      ]
     },
     {
       "id": "fix_1790538628210_1_1w01",
@@ -821,12 +874,41 @@
       "scheduledDate": "2026-09-28",
       "scheduledTime": "21:40",
       "venueLocation": "Basketball Court",
-      "status": "scheduled",
-      "homeScore": null,
-      "awayScore": null,
+      "status": "completed",
+      "homeScore": 3,
+      "awayScore": 3,
       "notes": "",
       "playerOfTheMatch": null,
-      "playerStats": []
+      "playerStats": [
+        {
+          "playerId": "p_1790457778944_0",
+          "playerName": "SIRIL",
+          "teamId": "team_1790457780789_smr19",
+          "teamName": "SHOURYANGHA FC",
+          "goals": 2
+        },
+        {
+          "playerId": "p_1790457778944_1",
+          "playerName": "VINEETH JOLLY",
+          "teamId": "team_1790457780789_smr19",
+          "teamName": "SHOURYANGHA FC",
+          "goals": 1
+        },
+        {
+          "playerId": "p_1790457778944_17",
+          "playerName": "LALHRUAITLUANGA",
+          "teamId": "team_1790457780789_rhsdg",
+          "teamName": "SHARINGAN STRIKERS",
+          "goals": 2
+        },
+        {
+          "playerId": "p_1790457778944_8",
+          "playerName": "BODHISATTVA BOSE",
+          "teamId": "team_1790457780789_rhsdg",
+          "teamName": "SHARINGAN STRIKERS",
+          "goals": 1
+        }
+      ]
     },
     {
       "id": "fix_1790538628210_2_p231",
@@ -840,13 +922,82 @@
       "scheduledDate": "2026-09-28",
       "scheduledTime": "22:20",
       "venueLocation": "Basketball Court",
-      "status": "scheduled",
-      "homeScore": null,
-      "awayScore": null,
+      "status": "completed",
+      "homeScore": 1,
+      "awayScore": 2,
       "notes": "",
       "playerOfTheMatch": null,
-      "playerStats": []
+      "playerStats": [
+        {
+          "playerId": "p_1790457778944_37",
+          "playerName": "ABHINAND",
+          "teamId": "team_1790457780789_dx56l",
+          "teamName": "SOUL SHOOTERS",
+          "goals": 1
+        },
+        {
+          "playerId": "p_1790457778944_27",
+          "playerName": "BHUSHAN SINGH",
+          "teamId": "team_1790457780789_qs6ry",
+          "teamName": "AKHADA CAPITALS FC",
+          "goals": 1
+        },
+        {
+          "playerId": "p_1790457778944_28",
+          "playerName": "PRATYUSH PATRO",
+          "teamId": "team_1790457780789_qs6ry",
+          "teamName": "AKHADA CAPITALS FC",
+          "goals": 1
+        }
+      ]
+    },
+    {
+      "id": "fix_futsal_grand_final_2026",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 11,
+      "roundName": "Grand Final",
+      "isPlayoff": true,
+      "homeTeamId": "team_1790457780789_smr19",
+      "awayTeamId": "team_1790457780789_ltz37",
+      "homeTeamName": "SHOURYANGHA FC",
+      "awayTeamName": "CHAOS UNITED FC",
+      "scheduledDate": "2026-09-29",
+      "scheduledTime": "21:30",
+      "venueLocation": "Basketball Court",
+      "status": "completed",
+      "homeScore": 2,
+      "awayScore": 1,
+      "notes": "Grand Final: Shouryangha FC defeated Chaos United FC 2-1 to become the Futsal Premier League 2026 Champions!",
+      "playerOfTheMatch": {
+        "playerId": "p_1790457778944_0",
+        "playerName": "SIRIL",
+        "teamId": "team_1790457780789_smr19",
+        "performance": "Winning Captain & Crucial Championship Goal"
+      },
+      "playerStats": [
+        {
+          "playerId": "p_1790457778944_0",
+          "playerName": "SIRIL",
+          "teamId": "team_1790457780789_smr19",
+          "teamName": "SHOURYANGHA FC",
+          "goals": 1
+        },
+        {
+          "playerId": "p_1790457778944_1",
+          "playerName": "VINEETH JOLLY",
+          "teamId": "team_1790457780789_smr19",
+          "teamName": "SHOURYANGHA FC",
+          "goals": 1
+        },
+        {
+          "playerId": "p_1790457778944_18",
+          "playerName": "RIYAS BABU K K",
+          "teamId": "team_1790457780789_ltz37",
+          "teamName": "CHAOS UNITED FC",
+          "goals": 1
+        }
+      ]
     }
   ],
-  "lastSyncedAt": "2026-10-17T20:41:43.536Z"
+  "lastSyncedAt": "2026-10-17T21:12:10.588Z"
 }
