@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { HeroTicker } from './HeroTicker';
+import { ChampionsPodium } from './ChampionsPodium';
 import { Leaderboard } from './Leaderboard';
 import { FixturesFeed } from './FixturesFeed';
 import { TeamRosterModal } from './TeamRosterModal';
@@ -31,10 +32,22 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
     );
   }
 
+  const isTournamentCompleted = event.status === 'completed' || Boolean(event.winnerTeamName);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-300">
       {/* Stadium Hero Banner & Match Ticker */}
       <HeroTicker event={event} fixtures={fixtures} />
+
+      {/* Grand Champions & Podium Showcase when concluded */}
+      {isTournamentCompleted && (
+        <ChampionsPodium
+          event={event}
+          teams={teams}
+          standings={standings}
+          onSelectTeam={(t) => setSelectedTeam(t)}
+        />
+      )}
 
       {/* Standings Points Table & Top Performers */}
       <Leaderboard
@@ -43,6 +56,7 @@ export const PublicPortal: React.FC<PublicPortalProps> = ({
         teams={teams}
         fixtures={fixtures}
         sport={event.sport}
+        event={event}
         onSelectTeam={(t) => setSelectedTeam(t)}
       />
 

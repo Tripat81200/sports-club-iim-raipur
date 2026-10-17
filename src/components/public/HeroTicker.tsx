@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Radio, Trophy, MapPin, Sparkles, ChevronRight } from 'lucide-react';
+import { Clock, Radio, Trophy, MapPin, Sparkles, ChevronRight, Crown, Medal } from 'lucide-react';
 import { TournamentEvent, Fixture } from '../../types';
 
 interface HeroTickerProps {
@@ -159,6 +159,30 @@ export const HeroTicker: React.FC<HeroTickerProps> = ({ event, fixtures, onSelec
                       <div className="text-[10px] text-slate-400 font-semibold uppercase">Secs</div>
                     </div>
                   </div>
+                </div>
+              )}
+            </div>
+          ) : event.status === 'completed' || event.winnerTeamName ? (
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-950/60 via-slate-900 to-slate-900 border-2 border-amber-400/80 shadow-2xl shadow-amber-500/20 text-center animate-in zoom-in-95 duration-300">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 shadow-md mb-3">
+                <Crown className="w-3.5 h-3.5" />
+                Tournament Champion
+              </div>
+              <div className="text-xl sm:text-2xl font-black text-amber-300 truncate tracking-tight mb-1">
+                {event.winnerTeamName || 'Grand Champion'}
+              </div>
+              <div className="text-xs text-slate-300 font-medium">
+                {event.runnerUpTeamName ? (
+                  <span>Runner-Up: <strong className="text-slate-200">{event.runnerUpTeamName}</strong></span>
+                ) : (
+                  <span>Official Champions Declared 🏆</span>
+                )}
+              </div>
+              {event.topScorerPlayerName && (
+                <div className="mt-3 pt-2.5 border-t border-amber-500/30 text-[11px] text-amber-200/90 flex items-center justify-center gap-1.5">
+                  <span>👟 Golden Boot:</span>
+                  <strong className="text-white">{event.topScorerPlayerName}</strong>
+                  {event.topScorerGoals ? <span>({event.topScorerGoals}G)</span> : null}
                 </div>
               )}
             </div>

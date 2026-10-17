@@ -24,6 +24,29 @@ export interface TournamentEvent {
   format: TournamentFormat;
   scoringRules: ScoringRules;
   teamCapacity: TeamCapacity;
+  // Tournament Conclusion & Champions
+  status?: 'upcoming' | 'ongoing' | 'completed';
+  winnerTeamId?: string | null;
+  winnerTeamName?: string | null;
+  winnerColor?: string | null;
+  winnerLogoUrl?: string | null;
+  runnerUpTeamId?: string | null;
+  runnerUpTeamName?: string | null;
+  runnerUpColor?: string | null;
+  secondRunnerUpTeamId?: string | null;
+  secondRunnerUpTeamName?: string | null;
+  secondRunnerUpColor?: string | null;
+  topScorerPlayerId?: string | null;
+  topScorerPlayerName?: string | null;
+  topScorerTeamName?: string | null;
+  topScorerGoals?: number | null;
+  mvpPlayerId?: string | null;
+  mvpPlayerName?: string | null;
+  mvpTeamName?: string | null;
+  mvpPerformance?: string | null;
+  customAwards?: Array<{ id: string; title: string; recipient: string; team?: string; notes?: string }>;
+  completedAt?: string | null;
+  concludingNotes?: string | null;
 }
 
 export interface Player {

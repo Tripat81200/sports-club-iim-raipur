@@ -7,13 +7,13 @@
       "startDate": "2026-09-25",
       "endDate": "2026-09-27",
       "venue": "IIM Raipur Basketball Court",
-      "format": "knockout",
+      "format": "round_robin",
       "scoringRules": {
         "pointsWin": 3,
         "pointsDraw": 1,
         "pointsLoss": 0,
         "bonusThreshold": 3,
-        "bonusPoints": 1,
+        "bonusPoints": 0,
         "penaltyPoints": 0
       },
       "teamCapacity": {
@@ -45,339 +45,381 @@
   ],
   "teams": [
     {
-      "id": "team_1",
+      "id": "team_1790457780789_smr19",
       "eventId": "evt_sangram_2026",
-      "name": "Raipur Rhinos",
-      "shortCode": "RRH",
-      "color": "#10b981",
-      "owner": "Aarav Sharma (PGP-1)",
-      "coOwner": "Verified Co-Owner Edit",
-      "contactNumber": "+91 99999 88888",
-      "players": [
-        {
-          "id": "p1_1",
-          "name": "Aarav Sharma",
-          "jerseyNumber": 10,
-          "role": "Forward (C)",
-          "isCaptain": true
-        },
-        {
-          "id": "p1_2",
-          "name": "Kabir Das",
-          "jerseyNumber": 7,
-          "role": "Winger",
-          "isCaptain": false
-        },
-        {
-          "id": "p1_3",
-          "name": "Aditya Roy",
-          "jerseyNumber": 4,
-          "role": "Central Midfielder",
-          "isCaptain": false
-        },
-        {
-          "id": "p1_4",
-          "name": "Manish Paul",
-          "jerseyNumber": 1,
-          "role": "Goalkeeper",
-          "isCaptain": false
-        },
-        {
-          "id": "p1_5",
-          "name": "Sameer Khan",
-          "jerseyNumber": 5,
-          "role": "Centre Back",
-          "isCaptain": false
-        },
-        {
-          "id": "p1_6",
-          "name": "Rohan Gupta",
-          "jerseyNumber": 11,
-          "role": "Striker",
-          "isCaptain": false
-        },
-        {
-          "id": "p1_7",
-          "name": "Nikhil Varma",
-          "jerseyNumber": 3,
-          "role": "Left Back",
-          "isCaptain": false
-        },
-        {
-          "id": "p1_8",
-          "name": "Hardik Shah",
-          "jerseyNumber": 8,
-          "role": "Midfielder",
-          "isCaptain": false
-        }
-      ]
-    },
-    {
-      "id": "team_2",
-      "eventId": "evt_sangram_2026",
-      "name": "Naya Raipur Knights",
-      "shortCode": "NRK",
+      "name": "SHOURYANGHA FC",
+      "shortCode": "SHO",
       "color": "#3b82f6",
-      "owner": "Rohan Iyer (PGP-2)",
-      "coOwner": "Ananya Sen (PGP-1)",
-      "contactNumber": "+91 98765 43211",
+      "logoUrl": null,
+      "owner": "CHAITANYA",
+      "coOwner": "AMEY",
+      "contactNumber": "",
       "players": [
         {
-          "id": "p2_1",
-          "name": "Rohan Iyer",
-          "jerseyNumber": 9,
-          "role": "Striker (C)",
+          "id": "p_1790457778944_0",
+          "name": "SIRIL",
+          "jerseyNumber": 1,
+          "role": "Player",
           "isCaptain": true
         },
         {
-          "id": "p2_2",
-          "name": "Devansh Bajaj",
-          "jerseyNumber": 8,
-          "role": "Attacking Midfielder",
-          "isCaptain": false
-        },
-        {
-          "id": "p2_3",
-          "name": "Ritvik Jha",
-          "jerseyNumber": 1,
-          "role": "Goalkeeper",
-          "isCaptain": false
-        },
-        {
-          "id": "p2_4",
-          "name": "Sahil Mishra",
-          "jerseyNumber": 6,
-          "role": "Defensive Mid",
-          "isCaptain": false
-        },
-        {
-          "id": "p2_5",
-          "name": "Arjun Singhal",
+          "id": "p_1790457778944_1",
+          "name": "VINEETH JOLLY",
           "jerseyNumber": 2,
-          "role": "Right Back",
+          "role": "Player",
           "isCaptain": false
         },
         {
-          "id": "p2_6",
-          "name": "Tushar Saxena",
-          "jerseyNumber": 17,
-          "role": "Winger",
-          "isCaptain": false
-        },
-        {
-          "id": "p2_7",
-          "name": "Gaurav Joshi",
-          "jerseyNumber": 4,
-          "role": "Centre Back",
-          "isCaptain": false
-        }
-      ]
-    },
-    {
-      "id": "team_3",
-      "eventId": "evt_sangram_2026",
-      "name": "Mahanadi Warriors",
-      "shortCode": "MHW",
-      "color": "#f59e0b",
-      "owner": "Vikram Rathore (PGP-2)",
-      "coOwner": "Tanvi Nair (PGP-1)",
-      "contactNumber": "+91 98765 43212",
-      "players": [
-        {
-          "id": "p3_1",
-          "name": "Vikram Rathore",
-          "jerseyNumber": 7,
-          "role": "Midfield Maestro (C)",
-          "isCaptain": true
-        },
-        {
-          "id": "p3_2",
-          "name": "Siddharth Jain",
-          "jerseyNumber": 11,
-          "role": "Forward",
-          "isCaptain": false
-        },
-        {
-          "id": "p3_3",
-          "name": "Harshvardhan",
-          "jerseyNumber": 1,
-          "role": "Goalkeeper",
-          "isCaptain": false
-        },
-        {
-          "id": "p3_4",
-          "name": "Pranav Sethi",
-          "jerseyNumber": 5,
-          "role": "Centre Back",
-          "isCaptain": false
-        },
-        {
-          "id": "p3_5",
-          "name": "Yash Mathur",
-          "jerseyNumber": 14,
-          "role": "Left Midfielder",
-          "isCaptain": false
-        },
-        {
-          "id": "p3_6",
-          "name": "Karan Chawla",
-          "jerseyNumber": 12,
-          "role": "Right Winger",
-          "isCaptain": false
-        },
-        {
-          "id": "p3_7",
-          "name": "Deepak Yadav",
+          "id": "p_1790457778944_2",
+          "name": "ABHISHEK KHARTADKAR",
           "jerseyNumber": 3,
-          "role": "Full Back",
-          "isCaptain": false
-        }
-      ]
-    },
-    {
-      "id": "team_4",
-      "eventId": "evt_sangram_2026",
-      "name": "Bastar Blasters",
-      "shortCode": "BBL",
-      "color": "#ec4899",
-      "owner": "Kabir Malhotra (PGP-1)",
-      "coOwner": "Simran Kaur (PGP-2)",
-      "contactNumber": "+91 98765 43213",
-      "players": [
-        {
-          "id": "p4_1",
-          "name": "Kabir Malhotra",
-          "jerseyNumber": 10,
-          "role": "Striker (C)",
-          "isCaptain": true
-        },
-        {
-          "id": "p4_2",
-          "name": "Amay Dubey",
-          "jerseyNumber": 8,
-          "role": "Central Mid",
+          "role": "Player",
           "isCaptain": false
         },
         {
-          "id": "p4_3",
-          "name": "Varun Kapoor",
-          "jerseyNumber": 1,
-          "role": "Goalkeeper",
-          "isCaptain": false
-        },
-        {
-          "id": "p4_4",
-          "name": "Chetan Anand",
+          "id": "p_1790457778944_3",
+          "name": "SANJEET PURANG",
           "jerseyNumber": 4,
-          "role": "Defender",
+          "role": "Player",
           "isCaptain": false
         },
         {
-          "id": "p4_5",
-          "name": "Mohit Bansal",
-          "jerseyNumber": 7,
-          "role": "Left Wing",
+          "id": "p_1790457778944_4",
+          "name": "TARUN KUMAR KERKETTA",
+          "jerseyNumber": 5,
+          "role": "Player",
           "isCaptain": false
         },
         {
-          "id": "p4_6",
-          "name": "Alok Ranjan",
-          "jerseyNumber": 2,
-          "role": "Right Back",
-          "isCaptain": false
-        }
-      ]
-    },
-    {
-      "id": "team_5",
-      "eventId": "evt_sangram_2026",
-      "name": "Chhattisgarh Cheetahs",
-      "shortCode": "CHC",
-      "color": "#8b5cf6",
-      "owner": "Siddharth Rao (PGP-2)",
-      "coOwner": "Sneha Patel (PGP-1)",
-      "contactNumber": "+91 98765 43214",
-      "players": [
-        {
-          "id": "p5_1",
-          "name": "Siddharth Rao",
-          "jerseyNumber": 11,
-          "role": "Forward (C)",
-          "isCaptain": true
-        },
-        {
-          "id": "p5_2",
-          "name": "Bhavik Parekh",
+          "id": "p_1790457778944_5",
+          "name": "DIPENDRA SINGH YADAV",
           "jerseyNumber": 6,
-          "role": "Midfielder",
+          "role": "Player",
           "isCaptain": false
         },
         {
-          "id": "p5_3",
-          "name": "Karthik Raja",
-          "jerseyNumber": 1,
-          "role": "Goalkeeper",
-          "isCaptain": false
-        },
-        {
-          "id": "p5_4",
-          "name": "Uday Sen",
-          "jerseyNumber": 5,
-          "role": "Centre Back",
-          "isCaptain": false
-        },
-        {
-          "id": "p5_5",
-          "name": "Akash Pandey",
+          "id": "p_1790457778944_6",
+          "name": "ABHIJEET SINGH",
           "jerseyNumber": 7,
-          "role": "Right Winger",
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_7",
+          "name": "NABEEL ABDUL AZEEZ",
+          "jerseyNumber": 8,
+          "role": "Player",
           "isCaptain": false
         }
       ]
     },
     {
-      "id": "team_6",
+      "id": "team_1790457780789_rhsdg",
       "eventId": "evt_sangram_2026",
-      "name": "Durg Dynamos",
-      "shortCode": "DUD",
-      "color": "#06b6d4",
-      "owner": "Kunal Mehta (PGP-1)",
-      "coOwner": "Pooja Deshmukh (PGP-2)",
-      "contactNumber": "+91 98765 43215",
+      "name": "SHARINGAN STRIKERS",
+      "shortCode": "SHA",
+      "color": "#3b82f6",
+      "logoUrl": null,
+      "owner": "SUJAL",
+      "coOwner": "ARAVIND KESHAV",
+      "contactNumber": "",
       "players": [
         {
-          "id": "p6_1",
-          "name": "Kunal Mehta",
-          "jerseyNumber": 9,
-          "role": "Striker (C)",
+          "id": "p_1790457778944_8",
+          "name": "BODHISATTVA BOSE",
+          "jerseyNumber": 1,
+          "role": "Player",
           "isCaptain": true
         },
         {
-          "id": "p6_2",
-          "name": "Sanyam Jain",
-          "jerseyNumber": 10,
-          "role": "Playmaker",
+          "id": "p_1790457778944_9",
+          "name": "YASH GUPTA",
+          "jerseyNumber": 2,
+          "role": "Player",
           "isCaptain": false
         },
         {
-          "id": "p6_3",
-          "name": "Omkar Jadhav",
-          "jerseyNumber": 1,
-          "role": "Goalkeeper",
-          "isCaptain": false
-        },
-        {
-          "id": "p6_4",
-          "name": "Aniket Ghosh",
+          "id": "p_1790457778944_10",
+          "name": "NIHAR JATHAR",
           "jerseyNumber": 3,
-          "role": "Defender",
+          "role": "Player",
           "isCaptain": false
         },
         {
-          "id": "p6_5",
-          "name": "Tarun Negi",
-          "jerseyNumber": 14,
-          "role": "Wing Back",
+          "id": "p_1790457778944_11",
+          "name": "MANU PANDEY",
+          "jerseyNumber": 4,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_12",
+          "name": "VIPUL KUMAR SINGH",
+          "jerseyNumber": 5,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_13",
+          "name": "AURAG",
+          "jerseyNumber": 6,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_14",
+          "name": "ARPIT",
+          "jerseyNumber": 7,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_15",
+          "name": "ADITHYAN M",
+          "jerseyNumber": 8,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_16",
+          "name": "UTKARSH VERMA",
+          "jerseyNumber": 9,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_17",
+          "name": "LALHRUAITLUANGA",
+          "jerseyNumber": 10,
+          "role": "Player",
+          "isCaptain": false
+        }
+      ]
+    },
+    {
+      "id": "team_1790457780789_ltz37",
+      "eventId": "evt_sangram_2026",
+      "name": "CHAOS UNITED FC",
+      "shortCode": "CHA",
+      "color": "#3b82f6",
+      "logoUrl": null,
+      "owner": "SHREELAKSHMI",
+      "coOwner": "SAPAN",
+      "contactNumber": "",
+      "players": [
+        {
+          "id": "p_1790457778944_18",
+          "name": "RIYAS BABU K K",
+          "jerseyNumber": 1,
+          "role": "Player",
+          "isCaptain": true
+        },
+        {
+          "id": "p_1790457778944_19",
+          "name": "RISHIKESH K",
+          "jerseyNumber": 2,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_20",
+          "name": "YASHWANTH K",
+          "jerseyNumber": 3,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_21",
+          "name": "SHUBHAM MALGAONKAR",
+          "jerseyNumber": 4,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_22",
+          "name": "AMAN SINGH",
+          "jerseyNumber": 5,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_23",
+          "name": "SAURIN HEMANT SAMNERKAR",
+          "jerseyNumber": 6,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_24",
+          "name": "ABHIGNAN ROUTHU",
+          "jerseyNumber": 7,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_25",
+          "name": "HRIDAY CHOUDHARY",
+          "jerseyNumber": 8,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_26",
+          "name": "SHARVIN TANWADE",
+          "jerseyNumber": 9,
+          "role": "Player",
+          "isCaptain": false
+        }
+      ]
+    },
+    {
+      "id": "team_1790457780789_qs6ry",
+      "eventId": "evt_sangram_2026",
+      "name": "AKHADA CAPITALS FC",
+      "shortCode": "AKH",
+      "color": "#3b82f6",
+      "logoUrl": null,
+      "owner": "JAGRIT",
+      "coOwner": "ARVIND KESHAV",
+      "contactNumber": "",
+      "players": [
+        {
+          "id": "p_1790457778944_27",
+          "name": "BHUSHAN SINGH",
+          "jerseyNumber": 1,
+          "role": "Player",
+          "isCaptain": true
+        },
+        {
+          "id": "p_1790457778944_28",
+          "name": "LAKSHYA CHAUHAN",
+          "jerseyNumber": 2,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_29",
+          "name": "TONDY BARUAH",
+          "jerseyNumber": 3,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_30",
+          "name": "PROMIT",
+          "jerseyNumber": 4,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_31",
+          "name": "RATIRAMAN SWAIN",
+          "jerseyNumber": 5,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_32",
+          "name": "ADITYA RAJ NAIR",
+          "jerseyNumber": 6,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_33",
+          "name": "MANTHAN BORO",
+          "jerseyNumber": 7,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_34",
+          "name": "ABHISHEK BODDU",
+          "jerseyNumber": 8,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_35",
+          "name": "F LALRINHLUA",
+          "jerseyNumber": 9,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_36",
+          "name": "ADITYA KAPOOR",
+          "jerseyNumber": 10,
+          "role": "Player",
+          "isCaptain": false
+        }
+      ]
+    },
+    {
+      "id": "team_1790457780789_dx56l",
+      "eventId": "evt_sangram_2026",
+      "name": "SOUL SHOOTERS",
+      "shortCode": "SOU",
+      "color": "#3b82f6",
+      "logoUrl": null,
+      "owner": "SUMIT SINGH",
+      "coOwner": "AUM CHAVDA",
+      "contactNumber": "",
+      "players": [
+        {
+          "id": "p_1790457778944_37",
+          "name": "ABHINAND",
+          "jerseyNumber": 1,
+          "role": "Player",
+          "isCaptain": true
+        },
+        {
+          "id": "p_1790457778944_38",
+          "name": "TIRTH DUGAR",
+          "jerseyNumber": 2,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_39",
+          "name": "GUNISH KUMAR",
+          "jerseyNumber": 3,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_40",
+          "name": "H LALCHHUANAWMA",
+          "jerseyNumber": 4,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_41",
+          "name": "ROHIT SHINDE",
+          "jerseyNumber": 5,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_42",
+          "name": "ABHIJIT GANGADHARAN",
+          "jerseyNumber": 6,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_43",
+          "name": "SAMAY",
+          "jerseyNumber": 7,
+          "role": "Player",
+          "isCaptain": false
+        },
+        {
+          "id": "p_1790457778944_44",
+          "name": "SRI VARSHAN G",
+          "jerseyNumber": 8,
+          "role": "Player",
           "isCaptain": false
         }
       ]
@@ -385,143 +427,426 @@
   ],
   "fixtures": [
     {
-      "id": "fix_1789910644995_1",
+      "id": "fix_1790458345154_0_8k9d",
       "eventId": "evt_sangram_2026",
       "roundNumber": 1,
-      "roundName": "Quarterfinals",
-      "homeTeamId": "team_1",
-      "awayTeamId": "TBD",
-      "homeTeamName": "Raipur Rhinos",
-      "awayTeamName": "TBD",
-      "scheduledDate": "2026-09-25",
-      "scheduledTime": "16:00",
-      "venueLocation": "Court 1",
-      "status": "scheduled",
-      "homeScore": null,
-      "awayScore": null,
-      "playerOfTheMatch": null,
+      "roundName": "League Match 1",
+      "homeTeamId": "team_1790457780789_dx56l",
+      "awayTeamId": "team_1790457780789_ltz37",
+      "homeTeamName": "SOUL SHOOTERS",
+      "awayTeamName": "CHAOS UNITED FC",
+      "scheduledDate": "2026-09-26",
+      "scheduledTime": "21:00",
+      "venueLocation": "Basketball Court",
+      "status": "completed",
+      "homeScore": 1,
+      "awayScore": 3,
       "notes": "",
+      "playerOfTheMatch": null,
       "playerStats": [
         {
-          "playerId": "p1",
-          "playerName": "Aarav Sharma",
+          "playerId": "p_1790457778944_38",
+          "playerName": "TIRTH DUGAR",
+          "teamId": "team_1790457780789_dx56l",
+          "teamName": "SOUL SHOOTERS",
+          "goals": 1,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        },
+        {
+          "playerId": "p_1790457778944_19",
+          "playerName": "RISHIKESH K",
+          "teamId": "team_1790457780789_ltz37",
+          "teamName": "CHAOS UNITED FC",
+          "goals": 1,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        },
+        {
+          "playerId": "p_1790457778944_18",
+          "playerName": "RIYAS BABU K K",
+          "teamId": "team_1790457780789_ltz37",
+          "teamName": "CHAOS UNITED FC",
           "goals": 2,
-          "assists": 1
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
         }
       ]
     },
     {
-      "id": "fix_1789910644995_2",
+      "id": "fix_1790458345154_1_p51j",
       "eventId": "evt_sangram_2026",
-      "roundNumber": 1,
-      "roundName": "Quarterfinals",
-      "homeTeamId": "team_2",
-      "awayTeamId": "TBD",
-      "homeTeamName": "Naya Raipur Knights",
-      "awayTeamName": "TBD",
-      "scheduledDate": "2026-09-25",
-      "scheduledTime": "17:00",
-      "venueLocation": "Court 2",
-      "status": "scheduled",
-      "homeScore": null,
-      "awayScore": null,
-      "playerOfTheMatch": null,
-      "notes": ""
-    },
-    {
-      "id": "fix_1789910644995_3",
-      "eventId": "evt_sangram_2026",
-      "roundNumber": 1,
-      "roundName": "Quarterfinals",
-      "homeTeamId": "team_3",
-      "awayTeamId": "team_6",
-      "homeTeamName": "Mahanadi Warriors",
-      "awayTeamName": "Durg Dynamos",
-      "scheduledDate": "2026-09-25",
-      "scheduledTime": "18:00",
-      "venueLocation": "Court 1",
+      "roundNumber": 2,
+      "roundName": "League Match 2",
+      "homeTeamId": "team_1790457780789_smr19",
+      "awayTeamId": "team_1790457780789_qs6ry",
+      "homeTeamName": "SHOURYANGHA FC",
+      "awayTeamName": "AKHADA CAPITALS FC",
+      "scheduledDate": "2026-09-26",
+      "scheduledTime": "21:40",
+      "venueLocation": "Basketball Court",
       "status": "completed",
-      "homeScore": 3,
-      "awayScore": 2,
-      "playerOfTheMatch": {
-        "playerId": "p3_1",
-        "playerName": "Vikram Rathore",
-        "teamId": "team_3",
-        "performance": "2 Goals & Match-winning assist"
-      },
-      "notes": ""
-    },
-    {
-      "id": "fix_1789910644995_4",
-      "eventId": "evt_sangram_2026",
-      "roundNumber": 1,
-      "roundName": "Quarterfinals",
-      "homeTeamId": "team_4",
-      "awayTeamId": "team_5",
-      "homeTeamName": "Bastar Blasters",
-      "awayTeamName": "Chhattisgarh Cheetahs",
-      "scheduledDate": "2026-09-25",
-      "scheduledTime": "16:00",
-      "venueLocation": "Court 2",
-      "status": "scheduled",
-      "homeScore": null,
-      "awayScore": null,
+      "homeScore": 1,
+      "awayScore": 0,
+      "notes": "",
       "playerOfTheMatch": null,
-      "notes": ""
+      "playerStats": [
+        {
+          "playerId": "p_1790457778944_0",
+          "playerName": "SIRIL",
+          "teamId": "team_1790457780789_smr19",
+          "teamName": "SHOURYANGHA FC",
+          "goals": 1,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        }
+      ]
     },
     {
-      "id": "fix_1789910644995_5",
-      "eventId": "evt_sangram_2026",
-      "roundNumber": 2,
-      "roundName": "Semifinals",
-      "homeTeamId": "TBD",
-      "awayTeamId": "TBD",
-      "homeTeamName": "Winner Match 1",
-      "awayTeamName": "Winner Match 2",
-      "scheduledDate": "2026-09-27",
-      "scheduledTime": "18:00",
-      "venueLocation": "Main Stadium Court",
-      "status": "scheduled",
-      "homeScore": null,
-      "awayScore": null,
-      "playerOfTheMatch": null,
-      "notes": ""
-    },
-    {
-      "id": "fix_1789910644995_6",
-      "eventId": "evt_sangram_2026",
-      "roundNumber": 2,
-      "roundName": "Semifinals",
-      "homeTeamId": "TBD",
-      "awayTeamId": "TBD",
-      "homeTeamName": "Winner Match 3",
-      "awayTeamName": "Winner Match 4",
-      "scheduledDate": "2026-09-27",
-      "scheduledTime": "18:00",
-      "venueLocation": "Main Stadium Court",
-      "status": "scheduled",
-      "homeScore": null,
-      "awayScore": null,
-      "playerOfTheMatch": null,
-      "notes": ""
-    },
-    {
-      "id": "fix_1789910644995_7",
+      "id": "fix_1790458345154_2_q7q1",
       "eventId": "evt_sangram_2026",
       "roundNumber": 3,
-      "roundName": "Grand Final",
-      "homeTeamId": "TBD",
-      "awayTeamId": "TBD",
-      "homeTeamName": "Winner Match 1",
-      "awayTeamName": "Winner Match 2",
+      "roundName": "League Match 3",
+      "homeTeamId": "team_1790457780789_ltz37",
+      "awayTeamId": "team_1790457780789_rhsdg",
+      "homeTeamName": "CHAOS UNITED FC",
+      "awayTeamName": "SHARINGAN STRIKERS",
+      "scheduledDate": "2026-09-26",
+      "scheduledTime": "22:20",
+      "venueLocation": "Basketball Court",
+      "status": "completed",
+      "homeScore": 0,
+      "awayScore": 1,
+      "notes": "",
+      "playerOfTheMatch": null,
+      "playerStats": [
+        {
+          "playerId": "p_1790457778944_14",
+          "playerName": "ARPIT",
+          "teamId": "team_1790457780789_rhsdg",
+          "teamName": "SHARINGAN STRIKERS",
+          "goals": 1,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "fix_1790458345154_3_p7a4",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 4,
+      "roundName": "League Match 4",
+      "homeTeamId": "team_1790457780789_smr19",
+      "awayTeamId": "team_1790457780789_dx56l",
+      "homeTeamName": "SHOURYANGHA FC",
+      "awayTeamName": "SOUL SHOOTERS",
+      "scheduledDate": "2026-09-26",
+      "scheduledTime": "23:00",
+      "venueLocation": "Basketball Court",
+      "status": "completed",
+      "homeScore": 5,
+      "awayScore": 2,
+      "notes": "",
+      "playerOfTheMatch": null,
+      "playerStats": [
+        {
+          "playerId": "p_1790457778944_37",
+          "playerName": "ABHINAND",
+          "teamId": "team_1790457780789_dx56l",
+          "teamName": "SOUL SHOOTERS",
+          "goals": 2,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        },
+        {
+          "playerId": "p_1790457778944_0",
+          "playerName": "SIRIL",
+          "teamId": "team_1790457780789_smr19",
+          "teamName": "SHOURYANGHA FC",
+          "goals": 3,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        },
+        {
+          "playerId": "p_1790457778944_1",
+          "playerName": "VINEETH JOLLY",
+          "teamId": "team_1790457780789_smr19",
+          "teamName": "SHOURYANGHA FC",
+          "goals": 1,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        },
+        {
+          "playerId": "p_1790457778944_2",
+          "playerName": "ABHISHEK KHARTADKAR",
+          "teamId": "team_1790457780789_smr19",
+          "teamName": "SHOURYANGHA FC",
+          "goals": 1,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "fix_1790458345154_4_g3k2",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 5,
+      "roundName": "League Match 5",
+      "homeTeamId": "team_1790457780789_qs6ry",
+      "awayTeamId": "team_1790457780789_rhsdg",
+      "homeTeamName": "AKHADA CAPITALS FC",
+      "awayTeamName": "SHARINGAN STRIKERS",
+      "scheduledDate": "2026-09-27",
+      "scheduledTime": "21:00",
+      "venueLocation": "Basketball Court",
+      "status": "completed",
+      "homeScore": 3,
+      "awayScore": 1,
+      "notes": "",
+      "playerOfTheMatch": null,
+      "playerStats": [
+        {
+          "playerId": "p_1790457778944_27",
+          "playerName": "BHUSHAN SINGH",
+          "teamId": "team_1790457780789_qs6ry",
+          "teamName": "AKHADA CAPITALS FC",
+          "goals": 3,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        },
+        {
+          "playerId": "p_1790457778944_17",
+          "playerName": "LALHRUAITLUANGA",
+          "teamId": "team_1790457780789_rhsdg",
+          "teamName": "SHARINGAN STRIKERS",
+          "goals": 1,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "fix_1790458345154_5_3icj",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 6,
+      "roundName": "League Match 6",
+      "homeTeamId": "team_1790457780789_smr19",
+      "awayTeamId": "team_1790457780789_ltz37",
+      "homeTeamName": "SHOURYANGHA FC",
+      "awayTeamName": "CHAOS UNITED FC",
+      "scheduledDate": "2026-09-27",
+      "scheduledTime": "21:40",
+      "venueLocation": "Basketball Court",
+      "status": "completed",
+      "homeScore": 0,
+      "awayScore": 3,
+      "notes": "",
+      "playerOfTheMatch": null,
+      "playerStats": [
+        {
+          "playerId": "p_1790457778944_18",
+          "playerName": "RIYAS BABU K K",
+          "teamId": "team_1790457780789_ltz37",
+          "teamName": "CHAOS UNITED FC",
+          "goals": 2,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        },
+        {
+          "playerId": "p_1790457778944_19",
+          "playerName": "RISHIKESH K",
+          "teamId": "team_1790457780789_ltz37",
+          "teamName": "CHAOS UNITED FC",
+          "goals": 1,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "fix_1790458345154_6_hizv",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 7,
+      "roundName": "League Match 7",
+      "homeTeamId": "team_1790457780789_dx56l",
+      "awayTeamId": "team_1790457780789_rhsdg",
+      "homeTeamName": "SOUL SHOOTERS",
+      "awayTeamName": "SHARINGAN STRIKERS",
+      "scheduledDate": "2026-09-27",
+      "scheduledTime": "22:20",
+      "venueLocation": "Basketball Court",
+      "status": "completed",
+      "homeScore": 1,
+      "awayScore": 2,
+      "notes": "",
+      "playerOfTheMatch": null,
+      "playerStats": [
+        {
+          "playerId": "p_1790457778944_17",
+          "playerName": "LALHRUAITLUANGA",
+          "teamId": "team_1790457780789_rhsdg",
+          "teamName": "SHARINGAN STRIKERS",
+          "goals": 1,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        },
+        {
+          "playerId": "p_1790457778944_13",
+          "playerName": "AURAG",
+          "teamId": "team_1790457780789_rhsdg",
+          "teamName": "SHARINGAN STRIKERS",
+          "goals": 1,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        },
+        {
+          "playerId": "p_1790457778944_40",
+          "playerName": "H LALCHHUANAWMA",
+          "teamId": "team_1790457780789_dx56l",
+          "teamName": "SOUL SHOOTERS",
+          "goals": 1,
+          "assists": 0,
+          "runs": 0,
+          "wickets": 0,
+          "overs": 0,
+          "baskets": 0,
+          "rebounds": 0,
+          "points": 0
+        }
+      ]
+    },
+    {
+      "id": "fix_1790538628210_0_t1bp",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 1,
+      "roundName": "League Match 8",
+      "homeTeamId": "team_1790457780789_ltz37",
+      "awayTeamId": "team_1790457780789_qs6ry",
+      "homeTeamName": "CHAOS UNITED FC",
+      "awayTeamName": "AKHADA CAPITALS FC",
       "scheduledDate": "2026-09-28",
-      "scheduledTime": "18:00",
-      "venueLocation": "Main Stadium Court",
+      "scheduledTime": "21:00",
+      "venueLocation": "Basketball Court",
       "status": "scheduled",
       "homeScore": null,
       "awayScore": null,
+      "notes": "",
       "playerOfTheMatch": null,
-      "notes": ""
+      "playerStats": []
+    },
+    {
+      "id": "fix_1790538628210_1_1w01",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 2,
+      "roundName": "League Match 9",
+      "homeTeamId": "team_1790457780789_smr19",
+      "awayTeamId": "team_1790457780789_rhsdg",
+      "homeTeamName": "SHOURYANGHA FC",
+      "awayTeamName": "SHARINGAN STRIKERS",
+      "scheduledDate": "2026-09-28",
+      "scheduledTime": "21:40",
+      "venueLocation": "Basketball Court",
+      "status": "scheduled",
+      "homeScore": null,
+      "awayScore": null,
+      "notes": "",
+      "playerOfTheMatch": null,
+      "playerStats": []
+    },
+    {
+      "id": "fix_1790538628210_2_p231",
+      "eventId": "evt_sangram_2026",
+      "roundNumber": 3,
+      "roundName": "League Match 10",
+      "homeTeamId": "team_1790457780789_dx56l",
+      "awayTeamId": "team_1790457780789_qs6ry",
+      "homeTeamName": "SOUL SHOOTERS",
+      "awayTeamName": "AKHADA CAPITALS FC",
+      "scheduledDate": "2026-09-28",
+      "scheduledTime": "22:20",
+      "venueLocation": "Basketball Court",
+      "status": "scheduled",
+      "homeScore": null,
+      "awayScore": null,
+      "notes": "",
+      "playerOfTheMatch": null,
+      "playerStats": []
     }
-  ]
+  ],
+  "lastSyncedAt": "2026-10-17T20:41:43.536Z"
 }

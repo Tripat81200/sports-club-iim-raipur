@@ -56,19 +56,31 @@ export function App() {
     loadEvents();
   }, []);
 
-  // Auto-save active state to browser localStorage on any changes
+  // Auto-save active state to browser localStorage on any changes (ONLY if real verified data)
   useEffect(() => {
     if (events.length > 0 && teams.length > 0) {
+      // Safety check: Never overwrite localStorage if the loaded state is dummy default data
+      const isDummyData = teams.some((t) => t.id === 'team_1' || t.name === 'Raipur Rhinos');
+      if (isDummyData) {
+        console.warn('[STORAGE] Suppressing auto-save: Dummy default teams detected. Preserving real user backups.');
+        return;
+      }
+
       try {
-        localStorage.setItem(
-          'iimr_sports_hub_db_backup',
-          JSON.stringify({
-            events,
-            teams,
-            fixtures,
-            updatedAt: Date.now(),
-          })
-        );
+        const payload = {
+          events,
+          teams,
+          fixtures,
+          updatedAt: Date.now(),
+        };
+        localStorage.setItem('iimr_sports_hub_db_backup', JSON.stringify(payload));
+
+        // Also save to a rolling snapshot history for maximum durability
+        const existingHistoryRaw = localStorage.getItem('iimr_sports_hub_history');
+        const history: any[] = existingHistoryRaw ? JSON.parse(existingHistoryRaw) : [];
+        // Keep up to 5 rolling snapshots
+        const newHistory = [payload, ...history.filter((h) => Math.abs(h.updatedAt - payload.updatedAt) > 60000)].slice(0, 5);
+        localStorage.setItem('iimr_sports_hub_history', JSON.stringify(newHistory));
       } catch (err) {
         console.warn('Failed to auto-save to localStorage:', err);
       }
@@ -84,15 +96,21 @@ export function App() {
         const backup = JSON.parse(localBackupRaw);
         if (!backup.teams || backup.teams.length === 0) return;
 
+        // Check if backup is genuine real tournament data
+        const isBackupReal = !backup.teams.some((t: any) => t.id === 'team_1' || t.name === 'Raipur Rhinos');
+        if (!isBackupReal) return;
+
         const serverTeams = await api.getTeams();
-        if (backup.teams.length > serverTeams.length) {
-          console.log('[AUTO-RESTORE] Server disk reset detected. Restoring tournament state from browser storage...');
+        const isServerDummy = serverTeams.length === 0 || serverTeams.some((t: any) => t.id === 'team_1' || t.name === 'Raipur Rhinos');
+
+        if (isServerDummy) {
+          console.log('[AUTO-RESTORE] Server dummy/reset state detected. Restoring verified tournament state from browser storage...');
           await api.syncState({
             events: backup.events || events,
             teams: backup.teams,
             fixtures: backup.fixtures || [],
           });
-          setAutoRestoredBanner('Your previously saved tournament teams and schedule have been restored to the server!');
+          setAutoRestoredBanner('Your verified tournament teams, matches, and scores have been restored to the cloud database!');
           setTimeout(() => setAutoRestoredBanner(null), 6000);
           loadEvents();
           if (selectedEvent) loadEventData();

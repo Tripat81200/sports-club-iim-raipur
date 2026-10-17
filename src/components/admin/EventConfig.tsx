@@ -431,6 +431,42 @@ export const EventConfig: React.FC<EventConfigProps> = ({
           </div>
         </div>
 
+        {/* Tournament Lifecycle & Completion Status */}
+        {!isCreatingNew && (
+          <div className="pt-4 border-t border-slate-800/80">
+            <div className="flex items-center gap-2 mb-2">
+              <Trophy className="w-4 h-4 text-amber-400" />
+              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
+                Tournament Lifecycle & Status
+              </h3>
+            </div>
+            <p className="text-xs text-slate-400 mb-3">
+              Mark this tournament as completed to crown grand champions and present the podium on the fan portal.
+            </p>
+            <div className="flex flex-wrap items-center gap-4 p-4 rounded-xl bg-slate-950 border border-slate-800">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-300">Status:</span>
+                <select
+                  value={formData.status || 'ongoing'}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                  className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-amber-400 cursor-pointer"
+                >
+                  <option value="ongoing">Ongoing Tournament</option>
+                  <option value="completed">Completed (Final Ceremony)</option>
+                  <option value="upcoming">Upcoming</option>
+                </select>
+              </div>
+
+              {formData.winnerTeamName && (
+                <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5 ml-auto">
+                  <span>🏆 Crowned Champion:</span>
+                  <span className="text-white">{formData.winnerTeamName}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Actions Bar */}
         <div className="pt-5 border-t border-slate-800 flex items-center justify-between gap-4">
           {!isCreatingNew && onDeleteEvent && (

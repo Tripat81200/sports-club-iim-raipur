@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Trophy, TrendingUp, Info, ChevronRight, Award, Star, Flame, Target, Medal, Users } from 'lucide-react';
-import { StandingsRow, ScoringRules, Team, Fixture } from '../../types';
+import { Trophy, TrendingUp, Info, ChevronRight, Award, Star, Flame, Target, Medal, Users, Crown } from 'lucide-react';
+import { StandingsRow, ScoringRules, Team, Fixture, TournamentEvent } from '../../types';
 import { TeamBadge } from '../common/TeamBadge';
 
 interface LeaderboardProps {
@@ -9,6 +9,7 @@ interface LeaderboardProps {
   teams: Team[];
   fixtures?: Fixture[];
   sport?: string;
+  event?: TournamentEvent;
   onSelectTeam: (team: Team) => void;
 }
 
@@ -18,9 +19,11 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
   teams,
   fixtures = [],
   sport = 'Football',
+  event,
   onSelectTeam,
 }) => {
   const [activeTab, setActiveTab] = useState<'standings' | 'performers'>('standings');
+  const isCompleted = event?.status === 'completed' || Boolean(event?.winnerTeamName);
 
   // Aggregated Player Performance Stats across completed fixtures
   const playerStatsMap = useMemo(() => {
@@ -172,6 +175,21 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
 
       {activeTab === 'standings' ? (
         <>
+          {/* Concluded Tournament Banner */}
+          {isCompleted && (
+            <div className="mb-4 p-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-slate-900 to-amber-500/10 border border-amber-500/40 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Crown className="w-4 h-4 text-amber-400 shrink-0" />
+                <span className="text-xs font-black text-amber-300 uppercase tracking-wide">
+                  Official Final Standings • Tournament Concluded
+                </span>
+              </div>
+              <span className="text-[11px] font-bold text-amber-400/90 hidden sm:inline">
+                🏆 {event?.winnerTeamName ? `Champion: ${event.winnerTeamName}` : 'All Results Certified'}
+              </span>
+            </div>
+          )}
+
           {/* Standings Table */}
           <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
@@ -200,19 +218,26 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
             ) : (
               standings.map((row) => {
                 const teamData = teams.find((t) => t.id === row.teamId);
+                const isChampion = isCompleted && (row.rank === 1 || (event?.winnerTeamId ? row.teamId === event.winnerTeamId : false));
+                const isRunnerUp = isCompleted && (row.rank === 2 || (event?.runnerUpTeamId ? row.teamId === event.runnerUpTeamId : false));
+                const isThirdPlace = isCompleted && (row.rank === 3 || (event?.secondRunnerUpTeamId ? row.teamId === event.secondRunnerUpTeamId : false));
                 const isTopTeam = row.rank === 1;
 
                 return (
                   <tr
                     key={row.teamId}
                     onClick={() => teamData && onSelectTeam(teamData)}
-                    className="hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                    className={`hover:bg-slate-800/40 transition-colors cursor-pointer group ${
+                      isChampion ? 'bg-amber-500/10 hover:bg-amber-500/15' : ''
+                    }`}
                   >
                     {/* Rank */}
                     <td className="py-3.5 px-4 text-center font-bold">
                       <span
                         className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-black ${
-                          isTopTeam
+                          isChampion
+                            ? 'bg-amber-400 text-slate-950 ring-2 ring-amber-300'
+                            : isTopTeam
                             ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-400/40'
                             : row.rank <= 4
                             ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
@@ -234,8 +259,24 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                           size="sm"
                         />
                         <div>
-                          <div className="font-bold text-white group-hover:text-emerald-400 transition-colors flex items-center gap-1.5">
-                            {row.teamName}
+                          <div className="font-bold text-white group-hover:text-emerald-400 transition-colors flex items-center gap-1.5 flex-wrap">
+                            <span>{row.teamName}</span>
+                            {isChampion && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 shadow-sm">
+                                <Crown className="w-3 h-3" />
+                                Champions 🏆
+                              </span>
+                            )}
+                            {isRunnerUp && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-800 text-slate-300 border border-slate-600">
+                                🥈 Runner-Up
+                              </span>
+                            )}
+                            {isThirdPlace && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-950/60 text-amber-400 border border-amber-800/40">
+                                🥉 3rd Place
+                              </span>
+                            )}
                             <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
                           </div>
                           {teamData?.owner && (

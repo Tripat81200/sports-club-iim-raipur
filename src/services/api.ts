@@ -166,6 +166,12 @@ export const api = {
     return res.json();
   },
 
+  async getChampionshipBroadcast(eventId: string): Promise<{ text: string; shareUrl: string }> {
+    const res = await fetch(`${BASE_URL}/broadcasts/championship/${eventId}`);
+    if (!res.ok) throw new Error('Failed to fetch championship broadcast');
+    return res.json();
+  },
+
   // Admin Security
   async verifyAdminPin(pin: string): Promise<{ success: boolean; token?: string }> {
     const res = await fetch(`${BASE_URL}/admin/verify-pin`, {

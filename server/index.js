@@ -48,7 +48,7 @@ async function initMongoDB() {
   try {
     console.log('[Storage] Connecting to MongoDB Atlas...');
     mongoClient = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 8000,
+      serverSelectionTimeoutMS: 10000,
     });
     await mongoClient.connect();
     const db = mongoClient.db('iimr_sports');
@@ -60,7 +60,7 @@ async function initMongoDB() {
 
     // Fetch existing state from MongoDB Atlas
     const cloudState = await mongoCollection.findOne({ id: 'main_state' });
-    if (cloudState && Array.isArray(cloudState.events) && Array.isArray(cloudState.teams)) {
+    if (cloudState && Array.isArray(cloudState.events) && Array.isArray(cloudState.teams) && cloudState.teams.length > 0) {
       memoryDb = {
         events: cloudState.events,
         teams: cloudState.teams,
@@ -72,7 +72,7 @@ async function initMongoDB() {
         fs.writeFileSync(DB_FILE, JSON.stringify(memoryDb, null, 2), 'utf-8');
       } catch (e) {}
     } else {
-      // First time on MongoDB Atlas: Seed with initial data
+      // First time on MongoDB Atlas or empty state: Seed with current store.json data
       console.log('[Storage] Initializing MongoDB Atlas with tournament state...');
       await mongoCollection.updateOne(
         { id: 'main_state' },
@@ -92,12 +92,10 @@ async function initMongoDB() {
   } catch (err) {
     isMongoConnected = false;
     console.error('[Storage Error] Failed to connect to MongoDB Atlas:', err.message);
-    console.log('[Storage Fallback] Continuing with local file storage (store.json).');
+    console.log('[Storage Fallback] Continuing with local storage (store.json). Will retry connecting in 10s...');
+    setTimeout(initMongoDB, 10000);
   }
 }
-
-// Start MongoDB async connection
-initMongoDB();
 
 // Helper to read database
 function readDb() {
@@ -495,15 +493,10 @@ app.delete('/api/fixtures/event/:eventId', (req, res) => {
 // ========================
 // STANDINGS / LEADERBOARD API
 // ========================
-app.get('/api/standings/:eventId', (req, res) => {
-  const db = readDb();
-  const { eventId } = req.params;
-  const event = db.events.find((e) => e.id === eventId);
-  if (!event) return res.status(404).json({ error: 'Event not found' });
-
+// Helper to compute leaderboard standings
+function computeStandings(event, teams, fixtures) {
   const rules = event.scoringRules || { pointsWin: 3, pointsDraw: 1, pointsLoss: 0, bonusThreshold: 3, bonusPoints: 0 };
-  const teams = db.teams.filter((t) => t.eventId === eventId);
-  const fixtures = db.fixtures.filter((f) => f.eventId === eventId && f.status === 'completed');
+  const completedFixtures = fixtures.filter((f) => f.status === 'completed');
 
   const table = {};
   for (const t of teams) {
@@ -527,7 +520,7 @@ app.get('/api/standings/:eventId', (req, res) => {
     };
   }
 
-  const sortedFixtures = [...fixtures].sort((a, b) => {
+  const sortedFixtures = [...completedFixtures].sort((a, b) => {
     const dtA = `${a.scheduledDate} ${a.scheduledTime || '00:00'}`;
     const dtB = `${b.scheduledDate} ${b.scheduledTime || '00:00'}`;
     return dtA.localeCompare(dtB);
@@ -601,12 +594,107 @@ app.get('/api/standings/:eventId', (req, res) => {
     item.rank = index + 1;
   });
 
+  return leaderboard;
+}
+
+app.get('/api/standings/:eventId', (req, res) => {
+  const db = readDb();
+  const { eventId } = req.params;
+  const event = db.events.find((e) => e.id === eventId);
+  if (!event) return res.status(404).json({ error: 'Event not found' });
+
+  const rules = event.scoringRules || { pointsWin: 3, pointsDraw: 1, pointsLoss: 0, bonusThreshold: 3, bonusPoints: 0 };
+  const teams = db.teams.filter((t) => t.eventId === eventId);
+  const fixtures = db.fixtures.filter((f) => f.eventId === eventId);
+  const leaderboard = computeStandings(event, teams, fixtures);
+
   res.json({
     eventId,
     eventName: event.name,
     scoringRules: rules,
     standings: leaderboard,
   });
+});
+
+// ========================
+// CHAMPIONSHIP & GRAND FINALE BROADCAST
+// ========================
+app.get('/api/broadcasts/championship/:eventId', (req, res) => {
+  const db = readDb();
+  const event = db.events.find((e) => e.id === req.params.eventId);
+  if (!event) return res.status(404).json({ error: 'Event not found' });
+
+  const eventTeams = db.teams.filter((t) => t.eventId === req.params.eventId);
+  const eventFixtures = db.fixtures.filter((f) => f.eventId === req.params.eventId);
+  const standings = computeStandings(event, eventTeams, eventFixtures);
+
+  const winner = event.winnerTeamName || (standings[0] ? standings[0].teamName : 'TBD');
+  const runnerUp = event.runnerUpTeamName || (standings[1] ? standings[1].teamName : 'TBD');
+  const secondRunnerUp = event.secondRunnerUpTeamName || (standings[2] ? standings[2].teamName : 'TBD');
+
+  // Top Scorer Calculation across all fixtures
+  let topScorer = event.topScorerPlayerName || '';
+  let topScorerGoals = event.topScorerGoals || 0;
+  let topScorerTeam = event.topScorerTeamName || '';
+
+  if (!topScorer) {
+    const goalsMap = {};
+    for (const f of eventFixtures.filter((x) => x.status === 'completed')) {
+      for (const ps of (f.playerStats || [])) {
+        if (ps.goals && ps.goals > 0) {
+          const key = ps.playerId || ps.playerName;
+          if (!goalsMap[key]) {
+            goalsMap[key] = { name: ps.playerName, team: ps.teamName, goals: 0 };
+          }
+          goalsMap[key].goals += ps.goals;
+        }
+      }
+    }
+    const sorted = Object.values(goalsMap).sort((a, b) => b.goals - a.goals);
+    if (sorted[0]) {
+      topScorer = sorted[0].name;
+      topScorerGoals = sorted[0].goals;
+      topScorerTeam = sorted[0].team;
+    }
+  }
+
+  let text = `🏆 *SPORTS CLUB IIM RAIPUR* 🏆\n`;
+  text += `*${event.name.toUpperCase()} - GRAND FINALE & WINNERS ANNOUNCEMENT* 🎊\n\n`;
+  text += `After thrilling and fiercely contested matches, Sports Club is thrilled to officially announce the Champions of *${event.name}*!\n\n`;
+  text += `🥇 *CHAMPIONS:* *${winner.toUpperCase()}* 👑\n`;
+  if (runnerUp && runnerUp !== 'TBD') {
+    text += `🥈 *RUNNERS-UP:* *${runnerUp}*\n`;
+  }
+  if (secondRunnerUp && secondRunnerUp !== 'TBD') {
+    text += `🥉 *SECOND RUNNERS-UP:* *${secondRunnerUp}*\n`;
+  }
+  text += `\n`;
+
+  if (topScorer) {
+    text += `⚽ *GOLDEN BOOT (TOP SCORER):* ${topScorer} ${topScorerTeam ? `(${topScorerTeam})` : ''} - ${topScorerGoals} Goals 👟🔥\n`;
+  }
+  if (event.mvpPlayerName) {
+    text += `⭐ *TOURNAMENT MVP:* ${event.mvpPlayerName} ${event.mvpTeamName ? `(${event.mvpTeamName})` : ''} 🌟\n`;
+  }
+  if (Array.isArray(event.customAwards) && event.customAwards.length > 0) {
+    text += `\n🎖️ *SPECIAL HONOURS:*\n`;
+    for (const a of event.customAwards) {
+      text += `• *${a.title}:* ${a.recipient} ${a.team ? `(${a.team})` : ''}\n`;
+    }
+  }
+
+  text += `\n📊 *FINAL POINTS TABLE & STANDINGS:*\n`;
+  standings.forEach((s, idx) => {
+    const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+    text += `${medal} *${s.teamName}*: ${s.points} PTS (P:${s.played}, W:${s.won}, D:${s.drawn}, L:${s.lost}, GD:${s.goalDifference > 0 ? '+' : ''}${s.goalDifference})\n`;
+  });
+
+  text += `\n${event.concludingNotes || 'Heartiest congratulations to the champions, participants, owners, and coordinators for a fantastic tournament!'}\n\n`;
+  text += `👉 *View complete tournament archives & rosters:* https://sports-club-iim-raipur.onrender.com/?mode=fan\n\n`;
+  text += `_Regards,_\n*Sports Club IIM Raipur*`;
+
+  const shareUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+  res.json({ text, shareUrl });
 });
 
 // ========================
@@ -1165,6 +1253,10 @@ if (fs.existsSync(DIST_DIR)) {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Sports Club IIM Raipur API & Web running on http://localhost:${PORT}`);
-});
+async function startServer() {
+  await initMongoDB();
+  app.listen(PORT, () => {
+    console.log(`Sports Club IIM Raipur API & Web running on http://localhost:${PORT}`);
+  });
+}
+startServer();
